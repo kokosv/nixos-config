@@ -1,0 +1,20 @@
+{ config, pkgs, lib, ... }:
+
+{
+  imports = [
+    ../../modules/home/default.nix
+  ];
+
+  programs.home-manager.enable = true;
+ 
+  home = {
+    stateVersion = "25.05";
+    username = "koko";
+    homeDirectory = "/home/koko";
+  };
+
+  # Enable/disable home modules
+  home.modules = {
+    #asd.enable = false;
+  };
+}
