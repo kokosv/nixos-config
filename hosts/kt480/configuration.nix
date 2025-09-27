@@ -21,7 +21,7 @@
     grub = {
       enable = true;
       device = "/dev/sda";
-      useOSProber = true;
+      useOSProber = false;
     };
   };
 
@@ -61,19 +61,25 @@
 
   # Configure keymap in X11
   services = {
+
     xserver = {
       enable = true;
-      resolutions = [{ x = 1920; y = 1080; }]; 
       autorun = true;
+
       xkb = {
         layout = "us";
         variant = "dvorak";
       };
+
+      displayManager.startx.enable = true;
+      windowManager.i3.enable = true;
     };
+
     libinput = {
       enable = true;
       touchpad.disableWhileTyping = true;
     };
+
     displayManager = {
       defaultSession = "none+i3";
     };

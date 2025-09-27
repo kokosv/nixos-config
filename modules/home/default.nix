@@ -2,10 +2,18 @@
 
 {
   imports = [
-    ./i3.nix
-    ./rofi.nix
+
+    # visual environment
+    ./i3-style.nix
     ./i3blocks.nix
+
+    # terminal
     ./kitty.nix
+
+    # global search and select
+    ./rofi.nix
+
+    # cli tools
     ./curl.nix
     ./wget.nix
     ./ranger.nix
@@ -14,13 +22,17 @@
     ./fzf.nix
     ./git.nix
   ];
-  
+
   # Default settings for all modules
   options.home.modules = {
-    i3.enable = lib.mkEnableOption "i3 window manager" // { default = true; };
-    rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
+
+    i3-style.enable = lib.mkEnableOption "i3wm styling" // { default = true; };
     i3blocks.enable = lib.mkEnableOption "i3blocks status bar" // { default = true; };
+
     kitty.enable = lib.mkEnableOption "kitty terminal" // { default = true; };
+
+    rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
+
     curl.enable = lib.mkEnableOption "curl utility" // { default = true; };
     wget.enable = lib.mkEnableOption "wget utility" // { default = true; };
     ranger.enable = lib.mkEnableOption "ranger file manager" // { default = true; };

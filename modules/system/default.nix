@@ -2,11 +2,13 @@
 
 {
   imports = [
-    ./ly.nix
+    ./dm.nix
+    ./i3.nix
  ];
   
   # Default settings for all modules
   options.modules = {
-    ly.enable = lib.mkEnableOption "Ly display manager" // { default = true; };
+    dm.enable = lib.mkEnableOption "display manager" // { default = true; };
+    i3.enable = lib.mkEnableOption "i3 window manager" // { default = true; };
  };
 }
