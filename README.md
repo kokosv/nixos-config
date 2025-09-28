@@ -4,13 +4,13 @@
 > managed with flake and home-manager.
 
 ## Content
-- [🚀 Quick Start](quick-start)
-- [🖥️ Available Hosts](available-hosts)
-- [⚙️ Modules](modules)
-- [📁 Structure](structure)
-- [📝 Notes](notes)
-- [🔒 SSH Setup](ssh-setup)
-- [🔧 Usage](usage)
+- [🚀 Quick Start](#-quick--start)
+- [🖥️ Available Hosts](#-available--hosts)
+- [⚙️ Modules](#-modules)
+- [📁 Structure](#-structure)
+- [📝 Notes](#-notes)
+- [🔒 SSH Setup](#-ssh--setup)
+- [🔧 Usage](#-usage)
 
 ## 🚀 Quick Start
 ```bash
