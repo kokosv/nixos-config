@@ -21,14 +21,14 @@ in {
         "${mod}+d" = "exec rofi -show drun";
         "${mod}+Shift+q" = "kill";
 
-        "${mod}+j" = "focus left";
-        "${mod}+k" = "focus down";
-        "${mod}+l" = "focus up";
+        "${mod}+h" = "focus left";
+        "${mod}+t" = "focus down";
+        "${mod}+n" = "focus up";
         "${mod}+semicolon" = "focus right";
 
-        "${mod}+Shift+j" = "move left";
-        "${mod}+Shift+k" = "move down";
-        "${mod}+Shift+l" = "move up";
+        "${mod}+Shift+h" = "move left";
+        "${mod}+Shift+t" = "move down";
+        "${mod}+Shift+n" = "move up";
         "${mod}+Shift+semicolon" = "move right";
       };
     };
