@@ -4,18 +4,24 @@
 > managed with flake and home-manager.
 
 ## Content
-- [🚀 Quick Start](#-quick-start)
+- [🚀 Setup](#-setup-from-fresh-install)
 - [🖥️ Available Hosts](#️-available-hosts)
 - [⚙️ Modules](#️-modules)
 - [📁 Structure](#-structure)
 - [📝 Notes](#-notes)
-- [🔒 SSH Setup](#-ssh-setup)
 - [🔧 Usage](#-usage)
   
-## 🚀 Quick Start
+## 🚀 Setup from fresh install
 ```bash
+# Open generated config and add git
+nano /etc/nixos/configuration.nix
+
+# 
+
 # Clone the configuration
-git clone git@github.com:your-username/nixos-config.git
+git clone https://github.com/kokosv/nixos-config.git
+
+# Go to config dir
 cd nixos-config
 
 # Switch to this configuration
@@ -50,12 +56,6 @@ nixos-config/
 - `hardware-configuration.nix` is gitignored as it's machine-specific
 - Secrets and sensitive data are not committed to the repo
 - Uses home-manager for user-level configuration management
-
-## 🔒 SSH Setup
-This repo uses SSH for GitHub authentication. Ensure your SSH keys are set up:
-```
-ssh -T git@github.com  # Should authenticate successfully
-```
 
 ## 🔧 Usage
 ### Build for specific host:
