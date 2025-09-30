@@ -18,9 +18,14 @@
 
   # Bootloader.
   boot.loader = {
+    efi = {
+      canTouchEfiVariables = true;
+      efiSysMountPoint = "/boot";
+    };
     grub = {
       enable = true;
-      device = "/dev/sda";
+      device = "nodev";
+      efiSupport = true;
       useOSProber = false;
     };
   };
@@ -94,10 +99,6 @@
       isNormalUser = true;
       description = "koko";
       extraGroups = [ "networkmanager" "wheel" ];
-      packages = with pkgs; [];
-      openssh.authorizedKeys.keys = [
-     	"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVgtInaAIzPgkRYnjAyCCiAhIIZj0e3L4Y5ejhXu00l"
-      ];
     };
 
     root = {
@@ -135,6 +136,7 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
+  # ssh server (accepting requests) // ssh client (making requests) in a home module
   services.openssh =  {
     enable = true;
     # ports = [ 22 ];

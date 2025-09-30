@@ -21,6 +21,7 @@
     ./eza.nix
     ./fzf.nix
     ./git.nix
+    ./ssh.nix
   ];
 
   # Default settings for all modules
@@ -40,5 +41,6 @@
     eza.enable = lib.mkEnableOption "eza file lister" // { default = true; };
     fzf.enable = lib.mkEnableOption "fzf fuzzy finder" // { default = true; };
     git.enable = lib.mkEnableOption "git version control" // { default = true; };
+    ssh.enable = lib.mkEnableOption "ssh client" // { default = true; };
   };
 }
