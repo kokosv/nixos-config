@@ -16,7 +16,8 @@
 # Open generated config and add git
 nano /etc/nixos/configuration.nix
 
-# 
+# Rebuild so git is added
+sudo nixos-rebuild switch
 
 # Clone the configuration
 git clone https://github.com/kokosv/nixos-config.git
