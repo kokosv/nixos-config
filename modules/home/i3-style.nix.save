@@ -29,21 +29,21 @@ in {
       }];
 
       keybindings = lib.mkOptionDefault {
- 
-        "${alt_L}+k" = "kill";
-
-        "${alt_L}+d" = "exec rofi -show drun";
+        "${super}" = "exec rofi -show drun";
         "${alt_L}+${enter}" = "exec kitty";
 
+        "${alt_L}+Shift+l" = "exec systemctl --user restart greetd";
+        "${alt_L}+Shift+k" = "kill";
+
         "${alt_L}+h" = "focus left";
-        "${alt_L}+j" = "focus down";
-        "${alt_L}+k" = "focus up";
-        "${alt_L}+l" = "focus right";
+        "${alt_L}+t" = "focus down";
+        "${alt_L}+n" = "focus up";
+        "${alt_L}+s" = "focus right";
 
         "${alt_L}+Shift+h" = "move left";
-        "${alt_L}+Shift+j" = "move down";
-        "${alt_L}+Shift+k" = "move up";
-        "${alt_L}+Shift+l" = "move right";
+        "${alt_L}+Shift+t" = "move down";
+        "${alt_L}+Shift+n" = "move up";
+        "${alt_L}+Shift+s" = "move right";
       };
     };
   };

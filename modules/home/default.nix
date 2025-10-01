@@ -10,6 +10,9 @@
     # terminal
     ./kitty.nix
 
+    # shell
+    ./shell.nix
+
     # global search and select
     ./rofi.nix
 
@@ -31,7 +34,9 @@
     i3blocks.enable = lib.mkEnableOption "i3blocks status bar" // { default = true; };
 
     kitty.enable = lib.mkEnableOption "kitty terminal" // { default = true; };
-
+	
+    shell.enable = lib.mkEnableOption "shell aliases" // { default = true; };
+    
     rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
 
     curl.enable = lib.mkEnableOption "curl utility" // { default = true; };

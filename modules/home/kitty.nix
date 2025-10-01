@@ -8,11 +8,11 @@ in {
 
     programs.kitty = {
       enable = true;
+
       settings = {
         confirm_os_window_close = 0; # No confirmation prompt
 	font_size = 11;
-        font_family = "JetBrainsMono Nerd Font Mono";
-        bold_font = "JetBrainsMono Nerd Font Mono Bold";
+        font_family = "DepartureMono Nerd Font";
       };
       
       #themeFile = "path/theme.conf";

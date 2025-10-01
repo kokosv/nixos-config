@@ -90,8 +90,11 @@
     };
   };
 
-  # Configure console keymap
-  console.keyMap = "dvorak";
+  # Configure console defaults
+  console = {
+    keyMap = "dvorak";
+    font = "DepartureMono Nerd Font";
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users = {
@@ -123,6 +126,11 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [  
 
+  ];
+
+  # Fonts
+  fonts.packages = with pkgs; [
+    nerd-fonts.departure-mono
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
