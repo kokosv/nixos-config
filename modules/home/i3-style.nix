@@ -30,7 +30,10 @@ in {
 
       keybindings = lib.mkOptionDefault {
  
-        "${alt_L}+k" = "kill";
+        "${super}+k" = "kill";
+
+        "${alt_L}+c" = "exec xclip -selection primary | xclip -selection clipboard";
+        "${alt_L}+v" = "exec xclip -selection clipboard -o";
 
         "${alt_L}+d" = "exec rofi -show drun";
         "${alt_L}+${enter}" = "exec kitty";

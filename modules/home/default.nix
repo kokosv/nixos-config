@@ -10,21 +10,21 @@
     # terminal
     ./kitty.nix
 
-    # shell
+    # shell aliases and func
     ./shell.nix
 
     # global search and select
     ./rofi.nix
 
     # cli tools
-    ./curl.nix
-    ./wget.nix
-    ./ranger.nix
+    ./git.nix
+    ./ssh.nix
     ./btop.nix
     ./eza.nix
     ./fzf.nix
-    ./git.nix
-    ./ssh.nix
+
+    # cli tools without customization
+    ./cli.nix
   ];
 
   # Default settings for all modules
@@ -34,18 +34,15 @@
     i3blocks.enable = lib.mkEnableOption "i3blocks status bar" // { default = true; };
 
     kitty.enable = lib.mkEnableOption "kitty terminal" // { default = true; };
-	
-    shell.enable = lib.mkEnableOption "shell aliases" // { default = true; };
-    
+    shell.enable = lib.mkEnableOption "shell aliases and func" // { default = true; };
     rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
 
-    curl.enable = lib.mkEnableOption "curl utility" // { default = true; };
-    wget.enable = lib.mkEnableOption "wget utility" // { default = true; };
-    ranger.enable = lib.mkEnableOption "ranger file manager" // { default = true; };
+    git.enable = lib.mkEnableOption "git version control" // { default = true; };
+    ssh.enable = lib.mkEnableOption "ssh client" // { default = true; };
     btop.enable = lib.mkEnableOption "btop system monitor" // { default = true; };
     eza.enable = lib.mkEnableOption "eza file lister" // { default = true; };
     fzf.enable = lib.mkEnableOption "fzf fuzzy finder" // { default = true; };
-    git.enable = lib.mkEnableOption "git version control" // { default = true; };
-    ssh.enable = lib.mkEnableOption "ssh client" // { default = true; };
+
+    cli.enable = lib.mkEnableOption "cli toolsw without customization" // { default = true; };
   };
 }

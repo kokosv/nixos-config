@@ -10,13 +10,16 @@ in {
       enable = true;
 
       settings = {
-        confirm_os_window_close = 0; # No confirmation prompt
+        confirm_os_window_close = 0;
 	font_size = 11;
         font_family = "DepartureMono Nerd Font";
+        background_opacity = "0.65";
+        allow_hyperlinks = true;
+#        clipboard_control = "write-clipboard read-clipboard write-primary read-primary";
       };
       
-      #themeFile = "path/theme.conf";
-
+#      themeFile = "GruvboxMaterialDarkHard"; 
+      
       keybindings = {
         "ctrl+shift+plus" = "change_font_size all +1.0";
         "ctrl+shift+minus" = "change_font_size all -1.0";
