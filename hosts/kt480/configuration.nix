@@ -29,8 +29,6 @@
       useOSProber = false;
     };
   };
-
-  networking.hostName = "kt480";
   
   # Enables wireless support via wpa_supplicant.
   # networking.wireless.enable = true;
@@ -40,11 +38,20 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  networking.networkmanager.enable = true;
-  
+  networking = {
+    hostName = "kt480";  
+    networkmanager = {
+      enable = true;
+    };
+  };
+
   # Enable bluetooth
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = false;
+  hardware = {
+    bluetooth = {
+      enable = true;
+      powerOnBoot = false;
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/Bucharest";

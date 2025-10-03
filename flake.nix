@@ -26,7 +26,7 @@
 	    home-manager = {
 	      useGlobalPkgs = true;
 	      useUserPackages = true;
-              backupFileExtension = "backup";
+              backupFileExtension = "hm-backup";
 	      users.koko = import ./hosts/kt480/home.nix;
 	    };
           }

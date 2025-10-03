@@ -13,6 +13,9 @@
     # shell aliases and func
     ./shell.nix
 
+    # browser
+    ./firefox.nix
+
     # global search and select
     ./rofi.nix
 
@@ -35,6 +38,7 @@
 
     kitty.enable = lib.mkEnableOption "kitty terminal" // { default = true; };
     shell.enable = lib.mkEnableOption "shell aliases and func" // { default = true; };
+    firefox.enable = lib.mkEnableOption "browser" // { default = true; };
     rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
 
     git.enable = lib.mkEnableOption "git version control" // { default = true; };

@@ -6,7 +6,7 @@
   ];
 
   programs.home-manager.enable = true;
- 
+
   home = {
     stateVersion = "25.05";
     username = "koko";
@@ -15,6 +15,6 @@
 
   # Enable/disable home modules
   home.modules = {
-    #asd.enable = false;
+    #fzf.enable = false;
   };
 }

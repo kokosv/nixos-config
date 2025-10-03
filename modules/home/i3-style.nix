@@ -19,6 +19,8 @@ in {
         size = 11.0;
       };
 
+      terminal = "kitty";
+
       bars = [{
         position = "top";
         statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
