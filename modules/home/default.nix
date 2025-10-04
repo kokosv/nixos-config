@@ -25,6 +25,7 @@
     ./btop.nix
     ./eza.nix
     ./fzf.nix
+    ./fusuma.nix
 
     # cli tools without customization
     ./cli.nix
@@ -46,6 +47,7 @@
     btop.enable = lib.mkEnableOption "btop system monitor" // { default = true; };
     eza.enable = lib.mkEnableOption "eza file lister" // { default = true; };
     fzf.enable = lib.mkEnableOption "fzf fuzzy finder" // { default = true; };
+    fusuma.enable = lib.mkEnableOption "multitouch gestures for x11" // { default = true; };
 
     cli.enable = lib.mkEnableOption "cli toolsw without customization" // { default = true; };
   };

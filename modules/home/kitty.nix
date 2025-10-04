@@ -21,8 +21,8 @@ in {
 #      themeFile = "GruvboxMaterialDarkHard"; 
       
       keybindings = {
-        "ctrl+shift+plus" = "change_font_size all +1.0";
-        "ctrl+shift+minus" = "change_font_size all -1.0";
+        "ctrl+plus" = "change_font_size all +1.0";
+        "ctrl+minus" = "change_font_size all -1.0";
       };
     }; 
   };

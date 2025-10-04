@@ -9,6 +9,7 @@ in {
       wget
       ranger
       xclip
+      xdotool
     ];
   };
 }

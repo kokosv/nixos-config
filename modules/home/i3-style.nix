@@ -9,10 +9,21 @@ in {
   xsession.windowManager.i3 = {
     enable = true;
     config = {
-      startup = [{ 
-        command = "i3-msg workspace 1";
-        always = true; 
-      }];
+      startup = [
+	{
+	  command = "${pkgs.systemd}/bin/systemctl --user start ydotool";
+	  always = true;
+	}
+        {
+          command = "${pkgs.systemd}/bin/systemctl --user start fusuma";
+          always = true; 
+        }
+        { 
+          command = "i3-msg workspace 1";
+          always = true; 
+        }
+        
+      ];
 
       fonts = {
         names = [ "DepartureMono Nerd Font" ];

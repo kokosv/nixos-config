@@ -89,7 +89,16 @@
 
     libinput = {
       enable = true;
-      touchpad.disableWhileTyping = true;
+      touchpad = {
+        disableWhileTyping = true;
+        naturalScrolling = true;
+
+	# When enabled, a finger up during tap- and-drag 
+	# will not immediately release the button. 
+	# If the finger is set down again within the timeout, 
+	# the dragging process continues.
+        tappingDragLock = true;
+      };
     };
 
     displayManager = {
@@ -108,7 +117,7 @@
     koko = {
       isNormalUser = true;
       description = "koko";
-      extraGroups = [ "networkmanager" "wheel" ];
+      extraGroups = [ "networkmanager" "wheel" "input" ];
     };
 
     root = {

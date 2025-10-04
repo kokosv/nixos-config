@@ -14,14 +14,9 @@ in {
         search = {
           default = "ddg";
           privateDefault = "ddg";
+	  force = true; # force overide to skip having to delete the search.json.mozlz4.hm-backup file every rebuild
         };
 
-        # every time you change a preference setting
-	# home-manager will recreate the ~/.mozilla/firefox/default/search.json.mozlz4.hm-backup file 
-	# but it will conflict and return home-manager error 
-	# because it doesn't delete the old .hm-backup flie 
-	# so you need to delete it if that happens
-	# and then rebuild successfuly
         settings = {
           "nglayout.enable_drag_images" = false;
 	  "security.remote_settings.crlite_filters.enabled" = true;
@@ -38,8 +33,9 @@ in {
           "browser.search.region" = "BG"; 
 	  "browser.search.widget.inNavBar" = true;
 	  "browser.migrate.bookmarks.html.enabled" = false;
-	  
-	  "browser.newtabpage.enabled" = false;
+
+	  # home screen (if disabled it's just blank) 
+	  "browser.newtabpage.enabled" = true;
 	  "browser.newtabpage.pinned" = false;
           "browser.newtabpage.activity-stream.feeds.telemetry" = false;
 	  "browser.newtabpage.activity-stream.telemetry" = false;
