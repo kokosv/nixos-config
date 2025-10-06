@@ -19,6 +19,9 @@
     # global search and select
     ./rofi.nix
 
+    # editor
+    ./neovim.nix
+
     # cli tools
     ./git.nix
     ./ssh.nix
@@ -41,6 +44,7 @@
     shell.enable = lib.mkEnableOption "shell aliases and func" // { default = true; };
     firefox.enable = lib.mkEnableOption "browser" // { default = true; };
     rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
+    neovim.enable = lib.mkEnableOption "terminal text editor" // { default = true; };
 
     git.enable = lib.mkEnableOption "git version control" // { default = true; };
     ssh.enable = lib.mkEnableOption "ssh client" // { default = true; };

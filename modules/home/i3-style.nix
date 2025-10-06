@@ -42,6 +42,10 @@ in {
       }];
 
       keybindings = lib.mkOptionDefault {
+
+	# fkeys
+        # f8
+        "XF86WLAN" = "exec kitty -e nmtui";
  
         "${super}+k" = "kill";
 
