@@ -85,6 +85,9 @@
 
       displayManager.startx.enable = true;
       windowManager.i3.enable = true;
+      
+      # background img saved as .background-image
+      desktopManager.wallpaper.mode = "center";
     };
 
     libinput = {
@@ -104,6 +107,18 @@
     displayManager = {
       defaultSession = "none+i3";
     };
+  };
+
+  xdg.portal = {
+    enable = true;
+      
+    config = {
+      common.default = "gtk";
+    };
+
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+    ];
   };
 
   # Configure console defaults

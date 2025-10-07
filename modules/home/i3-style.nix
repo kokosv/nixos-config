@@ -49,8 +49,9 @@ in {
  
         "${super}+k" = "kill";
 
-        "${alt_L}+c" = "exec xclip -selection primary | xclip -selection clipboard";
+        "${alt_L}+c" = "exec xclip -selection clipboard";
         "${alt_L}+v" = "exec xclip -selection clipboard -o";
+	"${alt_L}+Shift_L+v" = "exec kitty --class clipse -e clipse";
 
         "${alt_L}+d" = "exec rofi -show drun";
         "${alt_L}+${enter}" = "exec kitty";

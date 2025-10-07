@@ -26,9 +26,7 @@ in {
           "2" = {
             "out".command = "${pkgs.xdotool}/bin/xdotool key ctrl+plus";
             "in".command = "${pkgs.xdotool}/bin/xdotool key ctrl+minus";
-#	    "out".command = "${pkgs.ydotool}/bin/ydotool key 29:1 42:1 78:1 29:0 42:0 78:0"; # Ctrl+Shift+Plus
-#            "in".command = "${pkgs.ydotool}/bin/ydotool key 29:1 42:1 74:1 29:0 42:0 74:0"; # Ctrl+Shift+Minus
-          };
+         };
         };
 
         threshold = {

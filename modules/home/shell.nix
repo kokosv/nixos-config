@@ -11,7 +11,7 @@ in {
       "..." = "cd ../..";
       r = "ranger";
       c = "clear";
-      nixreb = "sudo nixos-rebuild --flake ~/nixos-config#kt480 switch";
+      nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
       kys = "sudo shutdown -h now";
       lock = "sudo systemctl restart greetd"; 
     };

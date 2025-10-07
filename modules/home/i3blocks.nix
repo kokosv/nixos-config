@@ -10,6 +10,8 @@ in {
     # run i3-msg restart   
     xdg.configFile."i3blocks/config".text = ''
 
+      
+
       [network]
       command=nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2 || echo "wired"
       interval=30

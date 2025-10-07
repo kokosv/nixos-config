@@ -16,11 +16,17 @@
     # browser
     ./firefox.nix
 
-    # global search and select
+    # app search
     ./rofi.nix
 
     # editor
     ./neovim.nix
+
+    # clipboard manager
+    ./clipse.nix
+
+    # default usr dir
+    ./usr-dir.nix
 
     # cli tools
     ./git.nix
@@ -45,6 +51,7 @@
     firefox.enable = lib.mkEnableOption "browser" // { default = true; };
     rofi.enable = lib.mkEnableOption "rofi application launcher" // { default = true; };
     neovim.enable = lib.mkEnableOption "terminal text editor" // { default = true; };
+    clipse.enable = lib.mkEnableOption "clipboard manager" // { default = true; };
 
     git.enable = lib.mkEnableOption "git version control" // { default = true; };
     ssh.enable = lib.mkEnableOption "ssh client" // { default = true; };
@@ -52,6 +59,7 @@
     eza.enable = lib.mkEnableOption "eza file lister" // { default = true; };
     fzf.enable = lib.mkEnableOption "fzf fuzzy finder" // { default = true; };
     fusuma.enable = lib.mkEnableOption "multitouch gestures for x11" // { default = true; };
+    usr-dir.enable = lib.mkEnableOption "default usr dir" // { default = true; };
 
     cli.enable = lib.mkEnableOption "cli toolsw without customization" // { default = true; };
   };
