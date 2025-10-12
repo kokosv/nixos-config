@@ -3,7 +3,6 @@
 let
   super = "Mod4";
   alt_L = "Mod1";
-  alt_R = "Mod3";
   enter = "Return";
 in {
   xsession.windowManager.i3 = {
@@ -26,6 +25,8 @@ in {
         names = [ "DepartureMono Nerd Font" ];
         size = 11.0;
       };
+	
+      focus.followMouse = false;
 
       terminal = "kitty";
 
@@ -51,34 +52,51 @@ in {
         "${alt_L}+Shift+l" = "move right";
 
 	# fkeys
-        # f8
-        "XF86WLAN" = "exec kitty -e nmtui";
- 
-        "${super}+k" = "kill";
+#	"XF86AudioMute" = "";                    # F1 (Deafen sound)
+#	"XF86AudioLowerVolume" = "";             # F2 (Volume down)
+#	"XF86AudioRaiseVolume" = "";             # F3 (Volume up)
+#	"XF86AudioMicMute" = "";                 # F4 (Mute mic)
+#	"XF86MonBrightnessDown" = "";            # F5 (Brightness down)
+#	"XF86MonBrightnessUp" = "";              # F6 (Brightness up)
+#	"XF86Display" = "";                      # F7 (Second monitor mode)
+	"XF86WLAN" = "exec kitty --class nmtui -e nmtui";  # F8 (Network)
+#	"XF86Tools" = "";                        # F9 (Gear)
+	"XF86Bluetooth" = "exec kitty --class bluetui -e bluetui";  # F10 (Bluetooth)
+#	"XF86Keyboard" = "";                     # F11 (Keyboard)
+#	"XF86Favorites" = "";                    # F12 (Star)
 
-	# copy / paste
-	#"${alt_L}+c" = "exec xclip -selection clipboard";
-	#"${alt_L}+p" = "exec xclip -selection clipboard -o";
+        "${super}+k" = "kill";
 
 	# open programs
         "${alt_L}+${enter}" = "exec kitty";
-	#"${alt_R}+${enter}" = "exec firefox";
-	#"${alt_R}+c" = "exec kitty -e clipse";
-        #"${alt_R}+d" = "exec rofi -show drun";
- 
- 	"${alt_L}+b" = "exec kitty --class clipse --title clipse -e clipse";
+	"${alt_L}+Shift+${enter}" = "exec firefox";
+ 	"${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse";
         "${alt_L}+d" = "exec rofi -show drun";
-           
+        "${alt_L}+t" = "exec kitty --class btop -e btop";
+	"${alt_L}+i" = "exec kitty -e ikhal";
+
       };
 
       window.commands = [
         {
-          command = "floating enable, resize set 500 500, move position center";
-	  criteria = { class = "^clipse$"; };
+          command = "floating enable, resize set 700 500, move position center";
+ 	  criteria = { class = "^clipse$"; };
 	}
         {
-          command = "floating enable, resize set 500 500, move position center";
-	  criteria = { title = "^clipse$"; };
+          command = "floating enable, resize set 550 700, move position center";
+ 	  criteria = { class = "^nmtui$"; };
+	}
+        {
+          command = "floating enable, resize set 700 500, move position center";
+ 	  criteria = { class = "^bluetui$"; };
+	}
+        {
+          command = "floating enable, resize set 1200 800, move position center";
+ 	  criteria = { class = "^btop$"; };
+	}
+        {
+          command = "floating enable, resize set 700 500, move position center";
+ 	  criteria = { title = "^ikhal$"; };
 	}
 
       ];

@@ -10,6 +10,7 @@ in {
       ranger
       xclip
       xdotool
+      bluetui
     ];
   };
 }

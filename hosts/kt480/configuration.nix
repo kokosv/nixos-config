@@ -42,6 +42,7 @@
     hostName = "kt480";  
     networkmanager = {
       enable = true;
+      wifi.backend = "iwd";
     };
   };
 
@@ -74,6 +75,9 @@
   # Configure keymap in X11
   services = {
 
+    # compositor
+    picom.enable = true;
+
     xserver = {
       enable = true;
       autorun = true;
@@ -83,10 +87,11 @@
         variant = "dvorak";
       };
 
-      displayManager.startx.enable = true;
-     
+      displayManager.startx.enable = true; 
+
       # background img saved as .background-image
       desktopManager.wallpaper.mode = "center";
+    
     };
 
     libinput = {
@@ -106,6 +111,7 @@
     displayManager = {
       defaultSession = "none+i3";
     };
+
   };
 
   xdg.portal = {
@@ -158,7 +164,8 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [  
-
+    # wireless daemon
+    iwd
   ];
 
   # Fonts
