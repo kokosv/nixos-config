@@ -84,8 +84,7 @@
       };
 
       displayManager.startx.enable = true;
-      windowManager.i3.enable = true;
-      
+     
       # background img saved as .background-image
       desktopManager.wallpaper.mode = "center";
     };
@@ -120,6 +119,9 @@
       xdg-desktop-portal-gtk
     ];
   };
+
+  # realtimekit security service handles realtime scheduling priority to user processes on demand
+  security.rtkit.enable = true;
 
   # Configure console defaults
   console = {

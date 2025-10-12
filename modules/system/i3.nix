@@ -8,5 +8,6 @@ in {
     environment.systemPackages = with pkgs; [ i3 ];
     
     services.xserver.windowManager.i3.enable = true;
+
   };
 }

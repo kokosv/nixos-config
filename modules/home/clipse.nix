@@ -9,9 +9,10 @@ in {
     services.clipse = {
       enable = true;
     
-      systemdTarget = "graphical.target";
-      historySize = 10;
-      imageDisplay.type = "basic"; #kitty sixel
+      systemdTarget = "graphical-session.target";
+      historySize = 32;
+      allowDuplicates = false;
+      imageDisplay.type = "kitty";
 
     };
   };
