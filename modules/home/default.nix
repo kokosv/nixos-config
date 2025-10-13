@@ -40,8 +40,8 @@
     ./khal.nix
     ./dunst.nix
 
-    # cli tools without customization
-    ./cli.nix
+    # configless stuff
+    ./others.nix
   ];
 
   # Default settings for all modules
@@ -70,6 +70,6 @@
     khal.enable = lib.mkEnableOption "tui calendar" // { default = true; };
     dunst.enable = lib.mkEnableOption "notifications daemon" // { default = true; };
 
-    cli.enable = lib.mkEnableOption "cli tools without customization" // { default = true; };
+    others.enable = lib.mkEnableOption "configless stuff" // { default = true; };
   };
 }

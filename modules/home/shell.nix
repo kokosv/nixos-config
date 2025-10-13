@@ -36,6 +36,15 @@ in {
           du -h --max-depth="$level" "$dir" | sort -hr
         }
 
+        nixclr() {
+	  if [ "$#" -ne 1 ]; then
+	      echo "Usage: nixclr <days>"
+	      return 1
+	  fi
+	  days=$1
+	  nix-collect-garbage --delete-older-than "$days"
+	}
+
       '';
     };
   };

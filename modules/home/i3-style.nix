@@ -83,7 +83,7 @@ in {
  	  criteria = { class = "^clipse$"; };
 	}
         {
-          command = "floating enable, resize set 550 700, move position center";
+          command = "floating enable, resize set 700 700, move position center";
  	  criteria = { class = "^nmtui$"; };
 	}
         {

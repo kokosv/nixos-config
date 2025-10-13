@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 let
-  cfg = config.modules.mount_tools;
+  cfg = config.modules.mnt-utils;
 in {
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [

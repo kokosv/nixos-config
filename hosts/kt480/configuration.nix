@@ -42,7 +42,10 @@
     hostName = "kt480";  
     networkmanager = {
       enable = true;
-      wifi.backend = "iwd";
+      wifi = {
+        backend = "iwd";
+        powersave = false;
+      };
     };
   };
 
@@ -164,8 +167,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [  
-    # wireless daemon
-    iwd
+    
   ];
 
   # Fonts
