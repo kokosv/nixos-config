@@ -23,7 +23,7 @@ in {
 
       fonts = {
         names = [ "DepartureMono Nerd Font" ];
-        size = 11.0;
+        size = 13.0;
       };
 	
       focus.followMouse = false;
@@ -35,7 +35,7 @@ in {
         statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
         fonts = {
           names = [ "DepartureMono Nerd Font" ];
-          size = 11.0;
+          size = 13.0;
         };
       }];
 

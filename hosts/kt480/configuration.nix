@@ -143,7 +143,7 @@
     koko = {
       isNormalUser = true;
       description = "koko";
-      extraGroups = [ "networkmanager" "wheel" "input" ];
+      extraGroups = [ "networkmanager" "wheel" "input" "adbusers" ];
     };
 
     root = {
@@ -155,7 +155,7 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
- 
+  
   # Enable flakes
   nix = {
     package = pkgs.nixVersions.stable;

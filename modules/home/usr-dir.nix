@@ -21,7 +21,7 @@ in {
       videos = "${config.home.homeDirectory}/vid";
 
       extraConfig = {
-        XDG_PROJECTS_DIR = "${config.home.homeDirectory}/projects";
+        XDG_PROJECTS_DIR = "${config.home.homeDirectory}/prj";
 	XDG_MOUNT_DIR = "${config.home.homeDirectory}/mnt";
       };
     };
