@@ -14,12 +14,14 @@ in {
           command = "${pkgs.systemd}/bin/systemctl --user start i3-session.service &";
           always = true;
 	}
-        { 
-          command = "i3-msg workspace 1";
-          always = true; 
-        }
+ #       { 
+ #         command = " ";
+ #         always = true; 
+ #       }
         
       ];
+
+      defaultWorkspace = "workspace number 1";
 
       fonts = {
         names = [ "DepartureMono Nerd Font" ];
@@ -29,6 +31,7 @@ in {
       focus.followMouse = false;
 
       terminal = "kitty";
+      menu = "rofi";
 
       bars = [{
         position = "top";
@@ -102,5 +105,18 @@ in {
       ];
 
     };
+
+    extraConfig = ''
+      default_border pixel 1
+      default_floating_border pixel 1
+      
+      client.focused          #FFFFFF #000000 #FFFFFF #000000 #FFFFFF
+      client.unfocused        #777777 #000000 #777777 #000000 #777777
+
+      for_window [class="firefox"] border pixel 0
+#      for_window [class="kitty"] border pixel 1
+
+    '';
+
   };
 }

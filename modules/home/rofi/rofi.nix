@@ -11,7 +11,7 @@ in {
       enable = true;
       
       # must have font size to pick up the font
-      font = "DepartureMono Nerd Font 11";
+      font = "DepartureMono Nerd Font 13";
 #      theme = "dmenu";
       terminal = "${pkgs.kitty}/bin/kitty";
 

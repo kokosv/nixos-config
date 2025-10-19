@@ -8,6 +8,9 @@
     ./i3blocks.nix
     ./i3-session.nix
 
+    # compositor
+    ./picom.nix
+
     # terminal
     ./kitty.nix
 
@@ -50,7 +53,7 @@
     i3-style.enable = lib.mkEnableOption "i3wm styling" // { default = true; };
     i3blocks.enable = lib.mkEnableOption "i3blocks status bar" // { default = true; };
     i3-session.enable = lib.mkEnableOption "i3-session proper startup" // { default = true; };
-
+    picom.enable = lib.mkEnableOption "compositor" // { default = true; };
     kitty.enable = lib.mkEnableOption "terminal" // { default = true; };
     shell.enable = lib.mkEnableOption "shell aliases and func" // { default = true; };
     firefox.enable = lib.mkEnableOption "browser" // { default = true; };

@@ -5,12 +5,22 @@ let
 in {
   config = lib.mkIf cfg.enable {
     home.shellAliases = {
-      shelp = "alias | grep -E '^[a-z]'";
  
       ".." = "cd ..";
       "..." = "cd ../..";
+      
       r = "ranger";
       c = "clear";
+      
+      l = "eza";
+      ll = "eza -l";
+      ls = "eza --colour=always";
+      la = "eza -a";
+      lt = "eza -T";
+      lta = "eza -Ta";
+      ltl = "eza -Tl";
+      ltla = "eza -Tla";
+
       nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
       kys = "sudo shutdown -h now";
       lock = "sudo systemctl restart greetd"; 

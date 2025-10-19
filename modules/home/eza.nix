@@ -8,6 +8,16 @@ in {
     
     programs.eza = {
       enable = true;
+
+      enableBashIntegration = false;
+      git = true;
+      icons = "always";
+
+      extraOptions = [
+        "--group-directories-first"
+        "--header"
+      ];
+
     };
   };
 }
