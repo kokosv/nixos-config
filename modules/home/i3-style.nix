@@ -76,7 +76,7 @@ in {
  	"${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse";
         "${alt_L}+d" = "exec rofi -show drun";
         "${alt_L}+t" = "exec kitty --class btop -e btop";
-	"${alt_L}+i" = "exec kitty -e ikhal";
+	"${alt_L}+i" = "exec kitty --class ikhal -e ikhal";
 
       };
 
@@ -90,7 +90,7 @@ in {
  	  criteria = { class = "^nmtui$"; };
 	}
         {
-          command = "floating enable, resize set 700 500, move position center";
+          command = "floating enable, resize set 1920 1080, move position center";
  	  criteria = { class = "^bluetui$"; };
 	}
         {
@@ -99,7 +99,7 @@ in {
 	}
         {
           command = "floating enable, resize set 700 500, move position center";
- 	  criteria = { title = "^ikhal$"; };
+ 	  criteria = { class = "^ikhal$"; };
 	}
 
       ];
@@ -107,14 +107,17 @@ in {
     };
 
     extraConfig = ''
-      default_border pixel 1
+
+      hide_edge_borders smart_no_gaps
+
+      default_border pixel 0
       default_floating_border pixel 1
-      
+
       client.focused          #FFFFFF #000000 #FFFFFF #000000 #FFFFFF
       client.unfocused        #777777 #000000 #777777 #000000 #777777
 
       for_window [class="firefox"] border pixel 0
-#      for_window [class="kitty"] border pixel 1
+      for_window [class="kitty"] border pixel 1
 
     '';
 

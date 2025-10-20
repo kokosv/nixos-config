@@ -10,7 +10,8 @@ in {
       enable = true;
       
       settings = {
-
+	vsync = true;
+        backend = "xrender";
       };
 
     };
