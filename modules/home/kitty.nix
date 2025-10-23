@@ -15,7 +15,6 @@ in {
         font_family = "DepartureMono Nerd Font";
 #        background_opacity = "0.65";
         allow_hyperlinks = true;
-#       clipboard_control = "write-clipboard read-clipboard write-primary read-primary";
       };
       
 #     themeFile = "GruvboxMaterialDarkHard"; 
@@ -23,8 +22,6 @@ in {
       keybindings = {
         "ctrl+plus" = "change_font_size all +1.0";
         "ctrl+minus" = "change_font_size all -1.0";
-#	"alt+c" = "copy_or_interrupt";
-#	"alt+v" = "paste";
       };
 
     }; 

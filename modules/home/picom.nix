@@ -11,9 +11,21 @@ in {
       
       settings = {
 	vsync = true;
-        backend = "xrender";
-      };
+        backend = "glx";
+        
+	detect-transient = true;
+        detect-client-leader = true;
+        mark-wmwin-focused = true;
+        mark-ovredir-focused = true;
+        detect-client-opacity = true;
+	
+     };
 
+     opacityRules = [
+	"80:class_g = 'kitty'"  
+        "100:I3_FLOATING_WINDOW@:32c = 1"	  
+     ];
+ 
     };
   };
 }

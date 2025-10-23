@@ -11,7 +11,7 @@ in {
       xclip
       xdotool
       bluetui
-
+      gcc
     ];
   };
 }

@@ -14,12 +14,12 @@ in {
       
       l = "eza";
       ll = "eza -l";
-      ls = "eza --colour=always";
       la = "eza -a";
-      lt = "eza -T";
-      lta = "eza -Ta";
-      ltl = "eza -Tl";
-      ltla = "eza -Tla";
+      lal = "eza -a -l";
+      lt = "eza -T -L ";
+      lta = "eza -T -a -L ";
+      ltl = "eza -T -l -L ";
+      ltla = "eza -T -l -a -L ";
 
       nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
       kys = "sudo shutdown -h now";

@@ -14,12 +14,12 @@ in {
 
       [network]
       command=nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2 || echo "wired"
-      interval=30
+      interval=5
       signal=1
  
       [memory]
       command=free -h | awk '/^Mem/ {print $3"/"$2}'
-      interval=30
+      interval=5
 
       [date]
       command=date '+%Y-%m-%d'

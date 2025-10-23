@@ -119,7 +119,11 @@ in {
       for_window [class="firefox"] border pixel 0
       for_window [class="kitty"] border pixel 1
 
+
+
     '';
 
+#      for_window [class="kitty"] opacity 0.7
+#      for_window [class="kitty" floating] opacity 1.0
   };
 }
