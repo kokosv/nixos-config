@@ -6,10 +6,19 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ fzf ];
 
-    # Optional: enable fuzzy finding for bash/zsh
     programs.fzf = {
       enable = true;
       enableBashIntegration = true;
+
+      defaultOptions = [
+        "--style minimal"
+        "--height 40%"
+        "--layout reverse"
+        "--bind ctrl-j:down"
+        "--bind ctrl-k:up"
+        #"--preview 'cat {}'"
+      ];
     };
+
   };
 }
