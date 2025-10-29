@@ -34,11 +34,25 @@ in {
             foreground = mkLiteral "#ffffff";
             border-color = mkLiteral "#ffffff";
           };
+	  # argument parsing for [ margin / padding / border ]
+	  # all
+	  # top&bottom left&right
+	  # top left&right bottom
+	  # top right bottom left
+
 
           "#window" = {
             background-color = mkLiteral "@background-color";
             border = 1;
             width = mkLiteral "20%";
+	    padding = mkLiteral "16px";
+          };
+
+          "#inputbar" = {
+            background-color = mkLiteral "@background-color";
+            border = mkLiteral "0px solid 0px solid 1px solid 0px solid"; 
+	    border-color = mkLiteral "@border-color";
+            margin = mkLiteral "0px 0px 10px 0px";
           };
 
           "#element" = {
@@ -56,6 +70,7 @@ in {
             background-color = mkLiteral "@background-color";
           };
 
+	  # invert colours when selected
           "#element selected" = {
             text-color = mkLiteral "#000000";
             background-color = mkLiteral "#FFFFFF";
