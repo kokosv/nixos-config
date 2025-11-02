@@ -36,10 +36,33 @@ in {
       bars = [{
         position = "top";
         statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
-        fonts = {
+        
+	fonts = {
           names = [ "DepartureMono Nerd Font" ];
           size = 13.0;
         };
+
+        colors = {
+          background = "#000000";
+          separator = "#9A9996";
+          
+          focusedWorkspace = {
+            background = "#000000";
+            border = "#ffffff";
+            text = "#ffffff";
+          };
+          inactiveWorkspace = {
+            background = "#000000";
+            border = "#9A9996";
+            text = "#9A9996";
+          };
+          urgentWorkspace = {
+            background = "#000000";
+            border = "#ff0000";
+            text = "#ff0000";
+          };
+
+	};
       }];
 
       keybindings = lib.mkOptionDefault {
@@ -54,7 +77,7 @@ in {
         "${alt_L}+Shift+k" = "move up";
         "${alt_L}+Shift+l" = "move right";
 
-	# fkeys
+	# fkeys - Thinkpad T480 german keyboard layout
 #	"XF86AudioMute" = "";                    # F1 (Deafen sound)
 #	"XF86AudioLowerVolume" = "";             # F2 (Volume down)
 #	"XF86AudioRaiseVolume" = "";             # F3 (Volume up)
@@ -111,19 +134,14 @@ in {
       hide_edge_borders smart_no_gaps
 
       default_border pixel 0
-      default_floating_border pixel 1
+      default_floating_border none
 
       client.focused          #FFFFFF #000000 #FFFFFF #000000 #FFFFFF
       client.unfocused        #777777 #000000 #777777 #000000 #777777
 
-      for_window [class="firefox"] border pixel 0
-      for_window [class="kitty"] border pixel 1
-
-
+      for_window [floating] border pixel 1
+      for_window [class="kitty"] border pixel 1 
 
     '';
-
-#      for_window [class="kitty"] opacity 0.7
-#      for_window [class="kitty" floating] opacity 1.0
   };
 }

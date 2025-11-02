@@ -12,6 +12,8 @@ in {
       xdotool
       bluetui
       fd
+      zip
+      unzip
       gcc
     ];
   };

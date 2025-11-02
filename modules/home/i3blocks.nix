@@ -16,15 +16,24 @@ in {
       command=nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2 || echo "wired"
       interval=5
       signal=1
- 
+      
+      [separator]
+      command=echo "│"
+
       [memory]
       command=free -h | awk '/^Mem/ {print $3"/"$2}'
       interval=5
+
+      [separator]
+      command=echo "│"
 
       [date]
       command=date '+%Y-%m-%d'
       interval=once
  
+      [separator]
+      command=echo "│"
+
       [time]
       command=date '+%H:%M:%S'
       interval=1

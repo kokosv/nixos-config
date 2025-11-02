@@ -18,7 +18,11 @@ in {
         mark-wmwin-focused = true;
         mark-ovredir-focused = true;
         detect-client-opacity = true;
-	
+        
+	# Exclude JetBrains popups from compositing effects
+        exclude = [
+          "class_g = 'jetbrains-.*' && (window_type = 'menu' || window_type = 'dropdown_menu' || window_type = 'popup_menu')"
+        ];
      };
 
      opacityRules = [
