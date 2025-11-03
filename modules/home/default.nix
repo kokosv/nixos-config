@@ -42,6 +42,7 @@
     ./fusuma.nix
     ./khal.nix
     ./dunst.nix
+    ./direnv.nix
 
     # configless stuff
     ./others.nix
@@ -72,6 +73,7 @@
     fusuma.enable = lib.mkEnableOption "multitouch gestures for x11" // { default = true; };
     khal.enable = lib.mkEnableOption "tui calendar" // { default = true; };
     dunst.enable = lib.mkEnableOption "notifications daemon" // { default = true; };
+    direnv.enable = lib.mkEnableOption "shell extension" // { default = true; };
 
     others.enable = lib.mkEnableOption "configless stuff" // { default = true; };
   };

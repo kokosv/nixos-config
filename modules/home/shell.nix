@@ -54,7 +54,14 @@ in {
 	  days=$1
 	  nix-collect-garbage --delete-older-than "$days"
 	}
+	
+	shopt -s autocd
 
+        export HISTSIZE=1024
+	export HISTFILESIZE=4096
+	export HISTCONTROL=ignoredups
+
+	eval "$(direnv hook bash)"
       '';
     };
   };

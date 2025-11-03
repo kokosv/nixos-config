@@ -21,8 +21,9 @@ in {
         
 	# Exclude JetBrains popups from compositing effects
         exclude = [
-          "class_g = 'jetbrains-.*' && (window_type = 'menu' || window_type = 'dropdown_menu' || window_type = 'popup_menu')"
-        ];
+          "class_g = 'jetbrains-studio' && (window_type = 'menu' || window_type = 'dropdown_menu' || window_type = 'popup_menu')" 
+          "class_g = 'jetbrains-idea' && (window_type = 'menu' || window_type = 'dropdown_menu' || window_type = 'popup_menu')"
+	];
      };
 
      opacityRules = [
