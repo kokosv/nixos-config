@@ -8,22 +8,34 @@
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    inputs.nixvim = {
+      url = "github:nix-community/nixvim/nixos-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = inputs@
-  {
+  outputs = {
     self,
     nixpkgs,
     home-manager,
     ...
-  }: {
+  }
+  @inputs:
+  let
+    system = "x86_64-linux";
+    lib = nixpkgs.lib;
+    extraSpecialArgs = { inherit system inputs; };
+    specialArgs = { inherit system inputs; };
+  in {
     nixosConfigurations = {
-      kt480 = nixpkgs.lib.nixosSystem {
-	system = "x86_64-linux";
-        modules = [ 
+      kt480 = lib.nixosSystem {
+        modules = [
 	  ./hosts/kt480/configuration.nix
 	  home-manager.nixosModules.home-manager {
 	    home-manager = {
+	      inherit extraSpecialArgs;
 	      useGlobalPkgs = true;
 	      useUserPackages = true;
               backupFileExtension = "hm-backup";
@@ -31,6 +43,7 @@
 	    };
           }
 	];
+	specialArgs = specialArgs;
       };
     };
   };

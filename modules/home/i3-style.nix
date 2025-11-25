@@ -33,37 +33,37 @@ in {
       terminal = "kitty";
       menu = "rofi";
 
-      bars = [{
-        position = "top";
-        statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
+#      bars = [{
+#        position = "top";
+#        statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
         
-	fonts = {
-          names = [ "DepartureMono Nerd Font" ];
-          size = 13.0;
-        };
+#	fonts = {
+#          names = [ "DepartureMono Nerd Font" ];
+#          size = 13.0;
+#        };
 
-        colors = {
-          background = "#000000";
-          separator = "#9A9996";
+#        colors = {
+#          background = "#000000";
+#          separator = "#9A9996";
           
-          focusedWorkspace = {
-            background = "#000000";
-            border = "#ffffff";
-            text = "#ffffff";
-          };
-          inactiveWorkspace = {
-            background = "#000000";
-            border = "#9A9996";
-            text = "#9A9996";
-          };
-          urgentWorkspace = {
-            background = "#000000";
-            border = "#ff0000";
-            text = "#ff0000";
-          };
+#          focusedWorkspace = {
+#            background = "#000000";
+#            border = "#ffffff";
+#            text = "#ffffff";
+#          };
+#          inactiveWorkspace = {
+#            background = "#000000";
+#            border = "#9A9996";
+#            text = "#9A9996";
+#          };
+#          urgentWorkspace = {
+#            background = "#000000";
+#            border = "#ff0000";
+#            text = "#ff0000";
+#          };
 
-	};
-      }];
+#	};
+#      }];
 
       keybindings = lib.mkOptionDefault {
 

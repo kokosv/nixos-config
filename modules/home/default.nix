@@ -5,11 +5,13 @@
 
     # visual environment
     ./i3-style.nix
-    ./i3blocks.nix
     ./i3-session.nix
 
     # compositor
     ./picom.nix
+
+    # top bar
+    ./polybar/polybar.nix
 
     # terminal
     ./kitty.nix
@@ -25,7 +27,7 @@
     ./rofi/apps.nix
 
     # editor
-    ./neovim.nix
+    ./nvim/nixvim.nix
 
     # clipboard manager
     ./clipse.nix
@@ -52,15 +54,16 @@
   options.home.modules = {
 
     i3-style.enable = lib.mkEnableOption "i3wm styling" // { default = true; };
-    i3blocks.enable = lib.mkEnableOption "i3blocks status bar" // { default = true; };
     i3-session.enable = lib.mkEnableOption "i3-session proper startup" // { default = true; };
     picom.enable = lib.mkEnableOption "compositor" // { default = true; };
+    polybar.enable = lib.mkEnableOption "top bar" // { default = true; };
     kitty.enable = lib.mkEnableOption "terminal" // { default = true; };
     shell.enable = lib.mkEnableOption "shell aliases and func" // { default = true; };
     firefox.enable = lib.mkEnableOption "browser" // { default = true; };
     rofi.enable = lib.mkEnableOption "application launcher" // { default = true; };
     apps.enable = lib.mkEnableOption "add tui apps to rofi" // { default = true; };
-    neovim.enable = lib.mkEnableOption "tui text editor" // { default = true; };
+    nixvim.enable = lib.mkEnableOption "tui text editor" // { default = true; }; 
+    
     clipse.enable = lib.mkEnableOption "tui clipboard manager" // { default = true; };
 
     usr-dir.enable = lib.mkEnableOption "default usr dir" // { default = true; };
