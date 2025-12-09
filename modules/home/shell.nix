@@ -23,7 +23,15 @@ in {
 
       nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
       kys = "sudo shutdown -h now";
-      lock = "sudo systemctl restart greetd"; 
+
+      # connect monitor settings
+      hdmiup = "xrandr --output HDMI-2 --mode 1920x1080 --above eDP-1";
+      hdmir = "xrandr --output HDMI-2 --mode 1920x1080 --right-of eDP-1";
+      hdmil = "xrandr --output HDMI-2 --mode 1920x1080 --left-of eDP-1";
+      
+      # add lock screen
+      # lock = "";
+
     };
 
     programs.bash = {

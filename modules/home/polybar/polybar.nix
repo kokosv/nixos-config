@@ -7,7 +7,7 @@ in {
     home.packages = with pkgs; [ polybar ];
     
     services.polybar = {
-      enable = true;
+      enable = false;
     };
 
   };

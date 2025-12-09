@@ -30,6 +30,20 @@
     };
   };
   
+  # supposedly guarantees the early load of the graphic driver (integrated intel) 
+  #boot.kernelModules = [
+  #  "drm_kms_helper"
+  #  "i915"
+  #  "amdgpu"
+  #  "nvidia"
+  #];
+  
+  # enable opengl (usually by default)
+  #hardware.graphics.enable = true;
+
+  # turn on the HDMI if detected
+  #services.xserver.displayManager.sessionCommands = '' ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --auto || true '';
+
   # Enables wireless support via wpa_supplicant.
   # networking.wireless.enable = true;
   
