@@ -8,11 +8,19 @@ in {
     
     programs.git = {
       enable = true;
-      userName = "kokosv";
-      userEmail = "kaloyansv@gmail.com";
-      extraConfig = {
-        init.defaultBranch = "main";
+      settings = {
+        user = {
+          name = "kokosv";
+	  email = "kaloyansv@gmail.com";
+	};
+	init.defaultBranch = "main";
       };
+
+#      userName = "kokosv";
+#      userEmail = "kaloyansv@gmail.com";
+#      extraConfig = {
+#        init.defaultBranch = "main";
+#      };
     };
   };
 }
