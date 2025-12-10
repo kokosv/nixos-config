@@ -176,6 +176,7 @@
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
+    optimise.automatic = true;
   };
 
   # List packages installed in system profile. To search, run:

@@ -37,6 +37,17 @@ in {
     programs.bash = {
       enable = true;
       initExtra = ''
+ 
+        # direct usage of dir names - skip cd
+	shopt -s autocd
+
+        # command history
+        export HISTSIZE=1024
+	export HISTFILESIZE=4096
+	export HISTCONTROL=ignoredups
+
+        # fzf hook
+	eval "$(direnv hook bash)"
 
         gitfkit() {
           git add .
@@ -54,22 +65,40 @@ in {
           du -h --max-depth="$level" "$dir" | sort -hr
         }
 
-        nixclr() {
-	  if [ "$#" -ne 1 ]; then
-	      echo "Usage: nixclr <days>"
-	      return 1
-	  fi
-	  days=$1
-	  nix-collect-garbage --delete-older-than "$days"
+	nixgc() {
+	    if [[ $# -ne 1 ]]; then
+		echo "Usage: nixgc <days-or-interval>"
+		return 1
+	    fi
+
+	    local interval="$1"
+
+	    run_step() {
+		local cmd="$1"
+		local description="$2"
+
+		echo -e "\n=== $description ==="
+		eval "$cmd"
+		local rc=$?
+
+		if (( rc != 0 )); then
+		    echo -e "\n❌  $description failed (exit code $rc). Stopping the chain."
+		    return $rc
+		else
+		    echo "✅  $description succeeded."
+		fi
+	    }
+
+	    run_step "sudo nix-collect-garbage --delete-older-than \"$interval\"" \
+		     "Garbage‑collect old generations (older than $interval)" || return $?
+	    run_step "sudo nix store gc" \
+		     "Store garbage collection (remove unreferenced paths)" || return $?
+	    run_step "sudo nix store optimise" \
+		     "Store optimisation (deduplicate existing data)" || return $?
+
+	    echo -e "\n🎉  All three steps completed successfully."
 	}
-	
-	shopt -s autocd
 
-        export HISTSIZE=1024
-	export HISTFILESIZE=4096
-	export HISTCONTROL=ignoredups
-
-	eval "$(direnv hook bash)"
       '';
     };
   };
