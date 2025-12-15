@@ -67,7 +67,7 @@ in {
 
 	nixgc() {
 	    if [[ $# -ne 1 ]]; then
-		echo "Usage: nixgc <days-or-interval>"
+		echo "Usage: nixgc <7d(ays)>"
 		return 1
 	    fi
 

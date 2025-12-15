@@ -4,11 +4,11 @@ let
   cfg = config.home.modules.nixvim;
 in {
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ neovim ];
+#    home.packages = with pkgs; [ neovim ];
     
-#    programs.nixvim = {
-#      enable = true;
-#    };
+    programs.nixvim = {
+      enable = true;
+    };
 
   };
 }

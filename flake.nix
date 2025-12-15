@@ -9,9 +9,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixvim = {
-      url = "github:nix-community/nixvim/nixos-25.11";
-      inputs.nixpkgs.follows = "nixpkgs";
+    kickstart-nixvim = {
+      url = "github:JMartJonesy/kickstart.nixvim";
+#      inputs.nixpkgs.follows = "nixpkgs";
     };
 
   };

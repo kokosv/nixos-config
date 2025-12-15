@@ -3,6 +3,7 @@
 {
   imports = [
     ../../modules/home/default.nix
+    inputs.kickstart-nixvim.homeManagerModules.default
   ];
 
   programs.home-manager.enable = true;
