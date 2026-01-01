@@ -9,7 +9,6 @@
     ./tailscale.nix
     ./moonlight.nix
 
-    ./mnt-utils.nix
     ./others.nix
  ];
   
@@ -22,7 +21,6 @@
     tailscale.enable = lib.mkEnableOption "mesh vpn" // { default = true; };
     moonlight.enable = lib.mkEnableOption "sunshine client" // { default = true; };
 
-    mnt-utils.enable = lib.mkEnableOption "mounting tools" // { default = true; }; 
     others.enable = lib.mkEnableOption "configless stuff" // { default = true; }; 
   };
 }

@@ -1,15 +1,20 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [
     ../../modules/home/default.nix
-    inputs.kickstart-nixvim.homeManagerModules.default
   ];
 
   programs.home-manager.enable = true;
 
   home = {
-    stateVersion = "25.05";
+    stateVersion = "25.11";
     username = "koko";
     homeDirectory = "/home/koko";
   };

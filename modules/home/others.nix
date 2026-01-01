@@ -5,13 +5,12 @@ let
 in {
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ 
-      curl
-      wget
       ranger
       xclip
       xdotool
       bluetui
       fd
+      fdupes
       zip
       unzip
       gcc

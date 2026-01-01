@@ -1,11 +1,17 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.home.modules.nixvim;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
-#    home.packages = with pkgs; [ neovim ];
-    
+    #    home.packages = with pkgs; [ neovim ];
+
     programs.nixvim = {
       enable = true;
     };
