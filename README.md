@@ -4,14 +4,14 @@
 > managed with flake and home-manager.
 
 ## Content
-- [🚀 Setup](#-setup-from-fresh-install)
-- [🖥️ Available Hosts](#️-available-hosts)
-- [⚙️ Modules](#️-modules)
-- [📁 Structure](#-structure)
-- [📝 Notes](#-notes)
-- [🔧 Usage](#-usage)
+- [Setup](#-setup-from-fresh-install)
+- [Available Hosts](#️-available-hosts)
+- [Modules](#️-modules)
+- [Structure](#-structure)
+- [Notes](#-notes)
+- [Usage](#-usage)
   
-## 🚀 Setup from fresh install
+## Setup from fresh install
 ```bash
 # Open generated config and add git
 nano /etc/nixos/configuration.nix
@@ -32,16 +32,16 @@ cd nixos-config
 sudo nixos-rebuild switch --flake .#hostName
 ```
 
-## 🖥️ Available Hosts
+## Available Hosts
 - `kt480` - Main desktop/workstation
 
-## ⚙️ Modules
+## Modules
 The configuration uses a modular approach:
 
 - **System modules**: `modules/system/` - System packages and services
 - **Home modules**: `modules/home/` - User-specific configurations
 
-## 📁 Structure
+## Structure
 ```
 nixos-config/
 ├── flake.nix                            # Main flake configuration
@@ -56,12 +56,12 @@ nixos-config/
     └── home/                            # Home-manager modules
 ```
 
-## 📝 Notes
+## Notes
 - `hardware-configuration.nix` is gitignored as it's machine-specific
 - Secrets and sensitive data are not committed to the repo
 - Uses home-manager for user-level configuration management
 
-## 🔧 Usage
+## Usage
 ### Build for specific host:
 ```
 sudo nixos-rebuild switch --flake .#hostName
