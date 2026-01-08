@@ -1,24 +1,30 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.modules.others;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       curl
       wget
       # wireless daemon
-      iwd 
+      iwd
       # pci devices
       pciutils
       # dirves health monitoring
       smartmontools
-      # mount 
+      # mount
       e2fsprogs
       exfatprogs
       ntfs3g
-      desfstools
+      dosfstools
     ];
-    
+
   };
 }

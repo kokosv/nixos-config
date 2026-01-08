@@ -62,7 +62,7 @@
     firefox.enable = lib.mkEnableOption "browser" // { default = true; };
     rofi.enable = lib.mkEnableOption "application launcher" // { default = true; };
     apps.enable = lib.mkEnableOption "add tui apps to rofi" // { default = true; };
-    nixvim.enable = lib.mkEnableOption "tui text editor" // { default = true; }; 
+    nvim.enable = lib.mkEnableOption "tui text editor" // { default = true; }; 
     
     clipse.enable = lib.mkEnableOption "tui clipboard manager" // { default = true; };
 
