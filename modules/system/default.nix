@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -9,18 +14,34 @@
     ./tailscale.nix
     ./moonlight.nix
 
+    ./services.nix
     ./others.nix
- ];
-  
+  ];
+
   # Default settings for all modules
   options.modules = {
-    dm.enable = lib.mkEnableOption "display manager" // { default = true; };
-    i3.enable = lib.mkEnableOption "i3 window manager" // { default = true; };
-    audio.enable = lib.mkEnableOption "audio - pipewire" // { default = true; };
-    
-    tailscale.enable = lib.mkEnableOption "mesh vpn" // { default = true; };
-    moonlight.enable = lib.mkEnableOption "sunshine client" // { default = true; };
+    dm.enable = lib.mkEnableOption "display manager" // {
+      default = true;
+    };
+    i3.enable = lib.mkEnableOption "i3 window manager" // {
+      default = true;
+    };
+    audio.enable = lib.mkEnableOption "audio - pipewire" // {
+      default = true;
+    };
 
-    others.enable = lib.mkEnableOption "configless stuff" // { default = true; }; 
+    tailscale.enable = lib.mkEnableOption "mesh vpn" // {
+      default = true;
+    };
+    moonlight.enable = lib.mkEnableOption "sunshine client" // {
+      default = true;
+    };
+
+    services.enable = lib.mkEnableOption "services configs" // {
+      default = true;
+    };
+    others.enable = lib.mkEnableOption "configless stuff" // {
+      default = true;
+    };
   };
 }
