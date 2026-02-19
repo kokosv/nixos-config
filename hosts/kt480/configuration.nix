@@ -2,10 +2,15 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
-  imports = [ 
+  imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ../../modules/system/default.nix
@@ -29,31 +34,36 @@
       useOSProber = false;
     };
   };
-  
-  # supposedly guarantees the early load of the graphic driver (integrated intel) 
+
+  # supposedly guarantees the early load of the graphic driver (integrated intel)
   #boot.kernelModules = [
   #  "drm_kms_helper"
   #  "i915"
   #  "amdgpu"
   #  "nvidia"
   #];
-  
+
   # enable opengl (usually by default)
-  #hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+    ];
+  };
 
   # turn on the HDMI if detected
   #services.xserver.displayManager.sessionCommands = '' ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --auto || true '';
 
   # Enables wireless support via wpa_supplicant.
   # networking.wireless.enable = true;
-  
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
   networking = {
-    hostName = "kt480";  
+    hostName = "kt480";
     networkmanager = {
       enable = true;
       wifi = {
@@ -93,7 +103,7 @@
   services = {
 
     # compositor
-#    picom.enable = true;
+    # picom.enable = true;
 
     xserver = {
       enable = true;
@@ -104,11 +114,11 @@
         variant = "dvorak";
       };
 
-      displayManager.startx.enable = true; 
+      displayManager.startx.enable = true;
 
       # background img saved as .background-image
       desktopManager.wallpaper.mode = "center";
-    
+
     };
 
     libinput = {
@@ -117,10 +127,10 @@
         disableWhileTyping = true;
         naturalScrolling = true;
 
-	# When enabled, a finger up during tap- and-drag 
-	# will not immediately release the button. 
-	# If the finger is set down again within the timeout, 
-	# the dragging process continues.
+        # When enabled, a finger up during tap- and-drag
+        # will not immediately release the button.
+        # If the finger is set down again within the timeout,
+        # the dragging process continues.
         tappingDragLock = true;
       };
     };
@@ -133,7 +143,7 @@
 
   xdg.portal = {
     enable = true;
-      
+
     config = {
       common.default = "gtk";
     };
@@ -157,7 +167,12 @@
     koko = {
       isNormalUser = true;
       description = "koko";
-      extraGroups = [ "networkmanager" "wheel" "input" "adbusers" ];
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "input"
+        "adbusers"
+      ];
     };
 
     root = {
@@ -169,7 +184,7 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  
+
   # Enable flakes
   nix = {
     package = pkgs.nixVersions.stable;
@@ -181,8 +196,8 @@
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [  
-    
+  environment.systemPackages = with pkgs; [
+
   ];
 
   # Fonts
@@ -202,7 +217,7 @@
 
   # Enable the OpenSSH daemon.
   # ssh server (accepting requests) // ssh client (making requests) in a home module
-  services.openssh =  {
+  services.openssh = {
     enable = true;
     # ports = [ 22 ];
     settings = {

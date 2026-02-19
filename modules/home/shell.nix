@@ -82,10 +82,10 @@ in {
 		local rc=$?
 
 		if (( rc != 0 )); then
-		    echo -e "\n❌  $description failed (exit code $rc). Stopping the chain."
+		    echo -e "\n  $description failed (exit code $rc). Stopping the chain."
 		    return $rc
 		else
-		    echo "✅  $description succeeded."
+		    echo "  $description succeeded."
 		fi
 	    }
 
@@ -96,7 +96,7 @@ in {
 	    run_step "sudo nix store optimise" \
 		     "Store optimisation (deduplicate existing data)" || return $?
 
-	    echo -e "\n🎉  All three steps completed successfully."
+	    echo -e "\n  All three steps completed successfully."
 	}
 
       '';
