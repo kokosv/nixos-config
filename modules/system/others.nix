@@ -13,12 +13,16 @@ in
     environment.systemPackages = with pkgs; [
       curl
       wget
+
       # wireless daemon
       iwd
+
       # pci devices
       pciutils
+
       # dirves health monitoring
       smartmontools
+
       # mount
       e2fsprogs
       exfatprogs

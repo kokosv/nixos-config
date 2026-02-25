@@ -1,8 +1,14 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
-  cfg = config.modules.dm;
-in {
+  cfg = config.modules.display-manager;
+in
+{
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ tuigreet ];
 

@@ -7,20 +7,21 @@
 
 {
   imports = [
-    ./dm.nix
+    ./display-manager.nix
     ./i3.nix
     ./audio.nix
 
     ./tailscale.nix
     ./moonlight.nix
 
+    ./environmental-variables.nix
     ./services.nix
     ./others.nix
   ];
 
   # Default settings for all modules
   options.modules = {
-    dm.enable = lib.mkEnableOption "display manager" // {
+    display-manager.enable = lib.mkEnableOption "display manager" // {
       default = true;
     };
     i3.enable = lib.mkEnableOption "i3 window manager" // {
@@ -37,6 +38,9 @@
       default = true;
     };
 
+    environmental-variables.enable = lib.mkEnableOption "environmental variables" // {
+      default = true;
+    };
     services.enable = lib.mkEnableOption "services configs" // {
       default = true;
     };
