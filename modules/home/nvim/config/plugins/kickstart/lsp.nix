@@ -92,6 +92,11 @@
         #   enable = true;
         # };
 
+        # Elixir lsp
+        elixir_ls = {
+          enable = true;
+        };
+
         # Nix lsp
         nil_ls = {
           enable = true;

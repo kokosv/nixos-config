@@ -20,6 +20,10 @@ in
           command = "${pkgs.systemd}/bin/systemctl --user start i3-session.service &";
           always = true;
         }
+        {
+          command = "exec --no-startup-id greenclip daemon";
+          always = true;
+        }
         #       {
         #         command = " ";
         #         always = true;
@@ -91,21 +95,25 @@ in
         #	"XF86MonBrightnessDown" = "";            # F5 (Brightness down)
         #	"XF86MonBrightnessUp" = "";              # F6 (Brightness up)
         #	"XF86Display" = "";                      # F7 (Second monitor mode)
-        "XF86WLAN" = "exec kitty --class nmtui -e nmtui"; # F8 (Network)
+        "XF86WLAN" = "exec --no-startup-id kitty --class nmtui -e nmtui"; # F8 (Network)
         #	"XF86Tools" = "";                        # F9 (Gear)
-        "XF86Bluetooth" = "exec kitty --class bluetui -e bluetui"; # F10 (Bluetooth)
+        "XF86Bluetooth" = "exec --no-startup-id kitty --class bluetui -e bluetui"; # F10 (Bluetooth)
         #	"XF86Keyboard" = "";                     # F11 (Keyboard)
         #	"XF86Favorites" = "";                    # F12 (Star)
 
         "${super}+k" = "kill";
 
         # open programs
-        "${alt_L}+${enter}" = "exec kitty";
+        "${alt_L}+${enter}" = "exec --no-startup-id itty";
         "${alt_L}+Shift+${enter}" = "exec firefox";
-        "${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse";
-        "${alt_L}+d" = "exec rofi -show drun";
-        "${alt_L}+t" = "exec kitty --class btop -e btop";
-        "${alt_L}+i" = "exec kitty --class ikhal -e ikhal";
+        "${alt_L}+t" = "exec --no-startup-id kitty --class btop -e btop";
+        "${alt_L}+i" = "exec --no-startup-id kitty --class ikhal -e ikhal";
+
+        "${alt_L}+d" = "exec --no-startup-id rofi -show drun";
+        "${alt_L}+Shift+c" =
+          "exec --no-startup-id rofi -modi 'clipboard:greenclip print ' -show clipboard -run-command '{cmd}'";
+
+        #"${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse"; # clipboard manager (better for wayland)
 
       };
 

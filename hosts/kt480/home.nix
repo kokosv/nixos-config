@@ -19,8 +19,8 @@
     homeDirectory = "/home/koko";
   };
 
-  # Enable/disable home modules
+  # Enable/disable home modules - example: "clipse.enable = false;"
   home.modules = {
-    #fzf.enable = false;
+    clipse.enable = false;
   };
 }
