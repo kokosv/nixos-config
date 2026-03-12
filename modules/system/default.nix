@@ -11,6 +11,7 @@
     ./i3.nix
     ./audio.nix
 
+    ./greenclip.nix
     ./tailscale.nix
     ./moonlight.nix
 
@@ -28,6 +29,10 @@
       default = true;
     };
     audio.enable = lib.mkEnableOption "audio - pipewire" // {
+      default = true;
+    };
+
+    greenclip.enable = lib.mkEnableOption "rofi clipboard manager" // {
       default = true;
     };
 

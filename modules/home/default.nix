@@ -36,7 +36,6 @@
 
     # clipboard manager
     ./clipse.nix
-    ./greenclip.nix
 
     # default usr dir
     ./usr-dir.nix
@@ -89,9 +88,6 @@
     nvim.enable = lib.mkEnableOption "tui text editor" // {
       default = true;
     };
-    greenclip.enable = lib.mkEnableOption "rofi clipboard manager" {
-      default = true;
-    };
     clipse.enable = lib.mkEnableOption "tui clipboard manager" // {
       default = true;
     };
@@ -125,7 +121,6 @@
     direnv.enable = lib.mkEnableOption "shell extension" // {
       default = true;
     };
-
     others.enable = lib.mkEnableOption "configless stuff" // {
       default = true;
     };

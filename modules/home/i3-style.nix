@@ -104,7 +104,7 @@ in
         "${super}+k" = "kill";
 
         # open programs
-        "${alt_L}+${enter}" = "exec --no-startup-id itty";
+        "${alt_L}+${enter}" = "exec --no-startup-id kitty";
         "${alt_L}+Shift+${enter}" = "exec firefox";
         "${alt_L}+t" = "exec --no-startup-id kitty --class btop -e btop";
         "${alt_L}+i" = "exec --no-startup-id kitty --class ikhal -e ikhal";
