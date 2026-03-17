@@ -50,6 +50,7 @@
     ./khal.nix
     ./dunst.nix
     ./direnv.nix
+    ./fastfetch.nix
 
     # configless stuff
     ./others.nix
@@ -119,6 +120,9 @@
       default = true;
     };
     direnv.enable = lib.mkEnableOption "shell extension" // {
+      default = true;
+    };
+    fastfetch.enable = lib.mkEnableOption "system stats" // {
       default = true;
     };
     others.enable = lib.mkEnableOption "configless stuff" // {

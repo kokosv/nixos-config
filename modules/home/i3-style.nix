@@ -33,6 +33,8 @@ in
 
       defaultWorkspace = "workspace number 1";
 
+      workspaceAutoBackAndForth = true;
+
       fonts = {
         names = [ "DepartureMono Nerd Font" ];
         size = 13.0;
