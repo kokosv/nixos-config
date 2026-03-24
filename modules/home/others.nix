@@ -1,10 +1,16 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.home.modules.others;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ 
+    home.packages = with pkgs; [
       ranger
       xclip
       xdotool
