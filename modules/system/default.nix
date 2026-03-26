@@ -10,7 +10,7 @@
     ./display-manager.nix
     ./i3.nix
     ./audio.nix
-
+    ./upower.nix
     ./greenclip.nix
     ./tailscale.nix
     ./moonlight.nix
@@ -31,7 +31,9 @@
     audio.enable = lib.mkEnableOption "audio - pipewire" // {
       default = true;
     };
-
+    upower.enable = lib.mkEnableOption "power managment" // {
+      default = true;
+    };
     greenclip.enable = lib.mkEnableOption "rofi clipboard manager" // {
       default = true;
     };

@@ -1,12 +1,19 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.modules.audio;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ pipewire ];
-    
+
     security.rtkit.enable = true;
+
     services.pipewire = {
       enable = true;
 
@@ -17,7 +24,7 @@ in {
 
       extraConfig = {
         pipewire."99-silent-bell.conf" = {
-            "context.properties" = {
+          "context.properties" = {
             "module.x11.bell" = false;
           };
         };

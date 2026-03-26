@@ -13,13 +13,6 @@ in
 
     systemd.services = {
 
-      fstrim = {
-        serviceConfig = {
-          StandardOutput = "null";
-          StandardError = "null";
-        };
-      };
-
     };
 
   };
