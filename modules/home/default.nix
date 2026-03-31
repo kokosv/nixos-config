@@ -40,7 +40,10 @@
     # default usr dir
     ./usr-dir.nix
 
-    # cli tools
+    # overlay drawing
+    ./gromit-mpx.nix
+
+    # terminal tools
     ./git.nix
     ./ssh.nix
     ./btop.nix
@@ -93,6 +96,9 @@
       default = true;
     };
     usr-dir.enable = lib.mkEnableOption "default usr dir" // {
+      default = true;
+    };
+    gromit-mpx.enable = lib.mkEnableOption "overlay drawing tool" // {
       default = true;
     };
     git.enable = lib.mkEnableOption "git version control" // {
