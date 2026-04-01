@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.home.modules.others;
+  cfg = config.home.modules.configless;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -20,6 +20,7 @@ in
       zip
       unzip
       gcc
+      lorien # paint
     ];
   };
 }

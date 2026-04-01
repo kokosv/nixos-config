@@ -17,7 +17,7 @@
 
     ./environmental-variables.nix
     ./services.nix
-    ./others.nix
+    ./configless.nix
   ];
 
   # Default settings for all modules
@@ -51,7 +51,7 @@
     services.enable = lib.mkEnableOption "services configs" // {
       default = true;
     };
-    others.enable = lib.mkEnableOption "configless stuff" // {
+    configless.enable = lib.mkEnableOption "configless stuff" // {
       default = true;
     };
   };

@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.modules.others;
+  cfg = config.modules.configless;
 in
 {
   config = lib.mkIf cfg.enable {

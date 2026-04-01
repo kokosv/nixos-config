@@ -103,6 +103,8 @@ in
         #	"XF86Keyboard" = "";                     # F11 (Keyboard)
         #	"XF86Favorites" = "";                    # F12 (Star)
 
+        "Print" = "exec flameshot gui";
+
         "${super}+k" = "kill";
 
         # open programs

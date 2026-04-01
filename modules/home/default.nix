@@ -43,6 +43,9 @@
     # overlay drawing
     ./gromit-mpx.nix
 
+    # screenshot
+    ./flameshot.nix
+
     # terminal tools
     ./git.nix
     ./ssh.nix
@@ -56,7 +59,7 @@
     ./fastfetch.nix
 
     # configless stuff
-    ./others.nix
+    ./configless.nix
   ];
 
   # Default settings for all modules
@@ -101,6 +104,9 @@
     gromit-mpx.enable = lib.mkEnableOption "overlay drawing tool" // {
       default = true;
     };
+    flameshot.enable = lib.mkEnableOption "screenshot tool" // {
+      default = true;
+    };
     git.enable = lib.mkEnableOption "git version control" // {
       default = true;
     };
@@ -131,7 +137,7 @@
     fastfetch.enable = lib.mkEnableOption "system stats" // {
       default = true;
     };
-    others.enable = lib.mkEnableOption "configless stuff" // {
+    configless.enable = lib.mkEnableOption "configless stuff" // {
       default = true;
     };
   };
