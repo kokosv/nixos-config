@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.modules.audio;
+  cfg = config.modules.pipewire;
 in
 {
   config = lib.mkIf cfg.enable {

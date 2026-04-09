@@ -9,11 +9,12 @@
   imports = [
     ./display-manager.nix
     ./i3.nix
-    ./audio.nix
+    ./pipewire.nix
     ./upower.nix
     ./greenclip.nix
     ./tailscale.nix
     ./moonlight.nix
+    ./trackpoint.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -28,7 +29,7 @@
     i3.enable = lib.mkEnableOption "i3 window manager" // {
       default = true;
     };
-    audio.enable = lib.mkEnableOption "audio - pipewire" // {
+    pipewire.enable = lib.mkEnableOption "audio service" // {
       default = true;
     };
     upower.enable = lib.mkEnableOption "power managment" // {
@@ -37,14 +38,15 @@
     greenclip.enable = lib.mkEnableOption "rofi clipboard manager" // {
       default = true;
     };
-
     tailscale.enable = lib.mkEnableOption "mesh vpn" // {
       default = true;
     };
     moonlight.enable = lib.mkEnableOption "sunshine client" // {
       default = true;
     };
-
+    trackpoint.enable = lib.mkEnableOption "ThinkPad trackpoint" // {
+      default = false;
+    };
     environmental-variables.enable = lib.mkEnableOption "environmental variables" // {
       default = true;
     };

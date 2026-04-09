@@ -18,7 +18,7 @@
 
   # Enable/disable system modules
   modules = {
-    #i3.enable = false;
+    trackpoint.enable = true;
   };
 
   # Bootloader.
