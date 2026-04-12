@@ -18,21 +18,30 @@
 
   # Enable/disable system modules
   modules = {
-    trackpoint.enable = true;
+    trackpoint.enable = false;
   };
 
   # Bootloader.
-  boot.loader = {
-    efi = {
-      canTouchEfiVariables = true;
-      efiSysMountPoint = "/boot";
+  boot = {
+    loader = {
+      efi = {
+        canTouchEfiVariables = true;
+        efiSysMountPoint = "/boot";
+      };
+      grub = {
+        enable = true;
+        timeoutStyle = "hidden";
+        device = "nodev";
+        efiSupport = true;
+        useOSProber = false;
+      };
     };
-    grub = {
-      enable = true;
-      device = "nodev";
-      efiSupport = true;
-      useOSProber = false;
-    };
+    # pretty loading screen
+    # plymouth = {
+    #   enable = true;
+    #   theme = "nixos-bgrt";
+    #   themePackages = [ pkgs.nixos-bgrt-plymouth ];
+    # };
   };
 
   # supposedly guarantees the early load of the graphic driver (integrated intel)

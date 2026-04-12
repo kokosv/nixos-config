@@ -122,32 +122,32 @@ in
       };
 
       window.commands = [
+        # {
+        #   command = "floating enable, resize set 700 500, move position center";
+        #   criteria = {
+        #     class = "^clipse$";
+        #   };
+        # }
         {
-          command = "floating enable, resize set 700 500, move position center";
-          criteria = {
-            class = "^clipse$";
-          };
-        }
-        {
-          command = "floating enable, resize set 700 700, move position center";
+          command = "floating enable, resize set 1600 1000, move position center";
           criteria = {
             class = "^nmtui$";
           };
         }
         {
-          command = "floating enable, resize set 1920 1080, move position center";
+          command = "floating disable, resize set 1920 1080, move position center";
           criteria = {
             class = "^bluetui$";
           };
         }
         {
-          command = "floating enable, resize set 1200 800, move position center";
+          command = "floating enable, resize set 1600 1000, move position center";
           criteria = {
             class = "^btop$";
           };
         }
         {
-          command = "floating enable, resize set 700 500, move position center";
+          command = "floating enable, resize set 800 600, move position center";
           criteria = {
             class = "^ikhal$";
           };
