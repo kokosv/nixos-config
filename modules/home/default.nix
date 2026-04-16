@@ -46,6 +46,9 @@
     # screenshot
     ./flameshot.nix
 
+    # mail client
+    ./thunderbird.nix
+
     # terminal tools
     ./git.nix
     ./ssh.nix
@@ -105,6 +108,9 @@
       default = true;
     };
     flameshot.enable = lib.mkEnableOption "screenshot tool" // {
+      default = true;
+    };
+    thunderbird.enable = lib.mkEnableOption "mail client" // {
       default = true;
     };
     git.enable = lib.mkEnableOption "git version control" // {
