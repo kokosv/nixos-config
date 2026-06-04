@@ -49,6 +49,9 @@
     # mail client
     ./thunderbird.nix
 
+    # gtk theme
+    ./gtk-theme.nix
+
     # terminal tools
     ./git.nix
     ./ssh.nix
@@ -111,6 +114,9 @@
       default = true;
     };
     thunderbird.enable = lib.mkEnableOption "mail client" // {
+      default = true;
+    };
+    gtk-theme.enable = lib.mkEnableOption "gtk theme" // {
       default = true;
     };
     git.enable = lib.mkEnableOption "git version control" // {

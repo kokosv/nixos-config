@@ -11,8 +11,6 @@ in
 {
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-
-      # must have
       curl
       wget
 
@@ -30,7 +28,10 @@ in
       exfatprogs
       ntfs3g
       dosfstools
+
+      dconf
     ];
 
+    programs.dconf.enable = true; # gtk theme
   };
 }
