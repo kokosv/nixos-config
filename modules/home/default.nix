@@ -66,6 +66,7 @@
     ./dunst.nix
     ./direnv.nix
     ./fastfetch.nix
+    ./lazygit.nix
 
     # configless stuff
     ./configless.nix
@@ -156,6 +157,10 @@
     fastfetch.enable = lib.mkEnableOption "system stats" // {
       default = true;
     };
+    lazygit.enable = lib.mkEnableOption "git tui" // {
+      default = true;
+    };
+
     configless.enable = lib.mkEnableOption "configless stuff" // {
       default = true;
     };
