@@ -25,6 +25,7 @@ in
       yt-dlp
       ffmpeg
       brightnessctl # brightness
+      gearlever # appimage manager
     ];
   };
 }
