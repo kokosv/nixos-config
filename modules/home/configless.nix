@@ -21,6 +21,8 @@ in
       unzip
       gcc
       lorien # paint
+      pavucontrol # audio
+      mpv
     ];
   };
 }
