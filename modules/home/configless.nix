@@ -22,7 +22,8 @@ in
       gcc
       lorien # paint
       pavucontrol # audio
-      mpv
+      yt-dlp
+      ffmpeg
     ];
   };
 }

@@ -52,6 +52,9 @@
     # gtk theme
     ./gtk-theme.nix
 
+    # vid player
+    ./mpv.nix
+
     # terminal tools
     ./git.nix
     ./ssh.nix
@@ -119,6 +122,10 @@
     gtk-theme.enable = lib.mkEnableOption "gtk theme" // {
       default = true;
     };
+    mpv.enable = lib.mkEnableOption "vid player" // {
+      default = true;
+    };
+
     git.enable = lib.mkEnableOption "git version control" // {
       default = true;
     };
