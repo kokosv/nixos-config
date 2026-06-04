@@ -24,6 +24,7 @@ in
       pavucontrol # audio
       yt-dlp
       ffmpeg
+      brightnessctl # brightness
     ];
   };
 }

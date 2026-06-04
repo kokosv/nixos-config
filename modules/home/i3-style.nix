@@ -90,12 +90,12 @@ in
         "${alt_L}+Shift+l" = "move right";
 
         # fkeys - Thinkpad T480 german keyboard layout
-        #	"XF86AudioMute" = "";                    # F1 (Deafen sound)
-        #	"XF86AudioLowerVolume" = "";             # F2 (Volume down)
-        #	"XF86AudioRaiseVolume" = "";             # F3 (Volume up)
-        #	"XF86AudioMicMute" = "";                 # F4 (Mute mic)
-        #	"XF86MonBrightnessDown" = "";            # F5 (Brightness down)
-        #	"XF86MonBrightnessUp" = "";              # F6 (Brightness up)
+        "XF86AudioMute" = "exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; # F1 (Deafen sound)
+        "XF86AudioLowerVolume" = "exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; # F2 (Volume down)
+        "XF86AudioRaiseVolume" = "exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"; # F3 (Volume up)
+        "XF86AudioMicMute" = "exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; # F4 (Mute mic)
+        "XF86MonBrightnessDown" = "exec brightnessctl set 10%-"; # F5 (Brightness down)
+        "XF86MonBrightnessUp" = "exec brightnessctl set 10%+"; # F6 (Brightness up)
         #	"XF86Display" = "";                      # F7 (Second monitor mode)
         "XF86WLAN" = "exec --no-startup-id kitty --class nmtui -e nmtui"; # F8 (Network)
         #	"XF86Tools" = "";                        # F9 (Gear)
