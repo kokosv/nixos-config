@@ -32,15 +32,6 @@ cd nixos-config
 sudo nixos-rebuild switch --flake .#[hostName]
 ```
 
-## Available declared host (hostName)
-- `kt480`
-
-## Modules
-The configuration uses a modular approach:
-
-- **System modules**: `modules/system/` - System packages and services
-- **Home modules**: `modules/home/` - User-specific configurations
-
 ## Structure
 ```
 nixos-config/
