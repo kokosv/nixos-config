@@ -33,5 +33,6 @@ in
     ];
 
     programs.dconf.enable = true; # gtk theme
+
   };
 }

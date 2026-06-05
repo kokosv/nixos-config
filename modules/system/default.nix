@@ -15,6 +15,7 @@
     ./tailscale.nix
     ./moonlight.nix
     ./trackpoint.nix
+    ./xsecurelock.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -47,6 +48,10 @@
     trackpoint.enable = lib.mkEnableOption "ThinkPad trackpoint" // {
       default = false;
     };
+    xsecurelock.enable = lib.mkEnableOption "lock screen with pass" // {
+      default = true;
+    };
+
     environmental-variables.enable = lib.mkEnableOption "environmental variables" // {
       default = true;
     };
