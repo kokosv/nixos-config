@@ -89,7 +89,7 @@ in
         "${alt_L}+Shift+k" = "move up";
         "${alt_L}+Shift+l" = "move right";
 
-        # fkeys - Thinkpad T480 german keyboard layout
+        # fkeys - Thinkpad T480 ANSII keyboard layout
         "XF86AudioMute" = "exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; # F1 (Deafen sound)
         "XF86AudioLowerVolume" = "exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"; # F2 (Volume down)
         "XF86AudioRaiseVolume" = "exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"; # F3 (Volume up)
@@ -97,11 +97,11 @@ in
         "XF86MonBrightnessDown" = "exec brightnessctl set 10%-"; # F5 (Brightness down)
         "XF86MonBrightnessUp" = "exec brightnessctl set 10%+"; # F6 (Brightness up)
         #	"XF86Display" = "";                      # F7 (Second monitor mode)
-        "XF86WLAN" = "exec --no-startup-id kitty --class nmtui -e nmtui"; # F8 (Network)
-        #	"XF86Tools" = "";                        # F9 (Gear)
-        "XF86Bluetooth" = "exec --no-startup-id kitty --class bluetui -e bluetui"; # F10 (Bluetooth)
+        "XF86WLAN" = "exec --no-startup-id rofi-network-manager"; # F8 (Network)
+        "XF86Tools" = "exec --no-startup-id rofi-systemd"; # F9 (Gear)
+        "XF86Bluetooth" = "exec --no-startup-id rofi-bluetooth"; # F10 (Bluetooth)
         #	"XF86Keyboard" = "";                     # F11 (Keyboard)
-        #	"XF86Favorites" = "";                    # F12 (Star)
+        "XF86Favorites" = "exec --no-startup-id rofi -show p -modi p:rofi-power-menu --symbols --text"; # F12 (Star)
 
         "Print" = "exec flameshot gui";
 
@@ -110,12 +110,13 @@ in
         # open programs
         "${alt_L}+${enter}" = "exec --no-startup-id kitty";
         "${alt_L}+Shift+${enter}" = "exec firefox";
-        "${alt_L}+t" = "exec --no-startup-id kitty --class btop -e btop";
-        "${alt_L}+i" = "exec --no-startup-id kitty --class ikhal -e ikhal";
 
-        "${alt_L}+d" = "exec --no-startup-id rofi -show drun";
-        "${alt_L}+Shift+c" =
-          "exec --no-startup-id rofi -modi 'clipboard:greenclip print ' -show clipboard -run-command '{cmd}'";
+	# use rofi instead
+        # "${alt_L}+t" = "exec --no-startup-id kitty --class btop -e btop";
+        # "${alt_L}+i" = "exec --no-startup-id kitty --class ikhal -e ikhal";
+
+        "${alt_L}+Shift+d" = "exec --no-startup-id rofi -show drun";
+        "${alt_L}+Shift+c" = "exec --no-startup-id rofi -modi 'clipboard:greenclip print ' -show clipboard -run-command '{cmd}'";
 
         #"${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse"; # clipboard manager (better for wayland)
 
@@ -128,30 +129,19 @@ in
         #     class = "^clipse$";
         #   };
         # }
-        {
-          command = "floating enable, resize set 1600 1000, move position center";
-          criteria = {
-            class = "^nmtui$";
-          };
-        }
-        {
-          command = "floating disable, resize set 1920 1080, move position center";
-          criteria = {
-            class = "^bluetui$";
-          };
-        }
-        {
-          command = "floating enable, resize set 1600 1000, move position center";
-          criteria = {
-            class = "^btop$";
-          };
-        }
-        {
-          command = "floating enable, resize set 800 600, move position center";
-          criteria = {
-            class = "^ikhal$";
-          };
-        }
+
+        # {
+        #   command = "floating enable, resize set 1600 1000, move position center";
+        #   criteria = {
+        #     class = "^btop$";
+        #   };
+        # }
+        # {
+        #   command = "floating enable, resize set 800 600, move position center";
+        #   criteria = {
+        #     class = "^ikhal$";
+        #   };
+        # }
 
       ];
 

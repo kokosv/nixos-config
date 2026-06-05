@@ -14,16 +14,14 @@ in
       ranger
       xclip
       xdotool
-      bluetui
       fd
       fdupes
       zip
       unzip
-      gcc
-      lorien # paint
-      pavucontrol # audio
       yt-dlp
       ffmpeg
+      lorien # paint
+      pavucontrol # audio
       brightnessctl # brightness
       gearlever # appimage manager
     ];

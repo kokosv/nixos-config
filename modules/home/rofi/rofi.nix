@@ -5,7 +5,14 @@ let
   inherit (config.lib.formats.rasi) mkLiteral;
 in {
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ rofi ];
+    home.packages = with pkgs; [ 
+      rofi 
+      # rofi-pulse-select # sink/source 
+      rofi-power-menu 
+      rofi-bluetooth 
+      rofi-network-manager 
+      rofi-systemd
+    ];
 
     programs.rofi = {
       enable = true;
