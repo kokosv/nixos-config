@@ -147,7 +147,17 @@
     displayManager = {
       defaultSession = "none+i3";
     };
+  };
 
+  # on lid close
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate"; # on battery
+    HandleLidSwitchExternalPower = "suspend-then-hibernate"; # plugged in
+    HandleLidSwitchDocked = "suspend-then-hibernate"; # connected to external display
+  };
+
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "10min";
   };
 
   xdg.portal = {
