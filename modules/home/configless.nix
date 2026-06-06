@@ -26,6 +26,8 @@ in
       pavucontrol # audio
       brightnessctl # brightness
       gearlever # appimage manager
+      feh # img viewer
+      # vimiv-qt # img viewer vim bindings
     ];
   };
 }
