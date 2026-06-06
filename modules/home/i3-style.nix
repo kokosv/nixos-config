@@ -111,12 +111,13 @@ in
         "${alt_L}+${enter}" = "exec --no-startup-id kitty";
         "${alt_L}+Shift+${enter}" = "exec firefox";
 
-	# use rofi instead
+        # use rofi instead
         # "${alt_L}+t" = "exec --no-startup-id kitty --class btop -e btop";
         # "${alt_L}+i" = "exec --no-startup-id kitty --class ikhal -e ikhal";
 
-        "${alt_L}+Shift+d" = "exec --no-startup-id rofi -show drun";
-        "${alt_L}+Shift+c" = "exec --no-startup-id rofi -modi 'clipboard:greenclip print ' -show clipboard -run-command '{cmd}'";
+        "${alt_L}+d" = "exec --no-startup-id rofi -show drun";
+        "${alt_L}+Shift+c" =
+          "exec --no-startup-id rofi -modi 'clipboard:greenclip print ' -show clipboard -run-command '{cmd}'";
 
         #"${alt_L}+Shift+c" = "exec kitty --class clipse -e clipse"; # clipboard manager (better for wayland)
 
@@ -130,18 +131,31 @@ in
         #   };
         # }
 
-        # {
-        #   command = "floating enable, resize set 1600 1000, move position center";
-        #   criteria = {
-        #     class = "^btop$";
-        #   };
-        # }
-        # {
-        #   command = "floating enable, resize set 800 600, move position center";
-        #   criteria = {
-        #     class = "^ikhal$";
-        #   };
-        # }
+        {
+          command = "floating enable, resize set 1600 1000, move position center";
+          criteria = {
+            class = "^btop$";
+          };
+        }
+        {
+          command = "floating enable, resize set 800 600, move position center";
+          criteria = {
+            class = "^ikhal$";
+          };
+        }
+
+        {
+          command = "floating enable, resize set 1600 1000, move position center";
+          criteria = {
+            class = "^nmtui$";
+          };
+        }
+        {
+          command = "floating enable, resize set 1000 800, move position center";
+          criteria = {
+            class = "^bluetui$";
+          };
+        }
 
       ];
 

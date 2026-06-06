@@ -20,6 +20,8 @@ in
       unzip
       yt-dlp
       ffmpeg
+      qalculate-gtk
+      bluetui
       lorien # paint
       pavucontrol # audio
       brightnessctl # brightness
