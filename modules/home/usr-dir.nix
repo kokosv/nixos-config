@@ -1,13 +1,19 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.home.modules.usr-dir;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
- 
+
     xdg.userDirs = {
       enable = true;
-
+      setSessionVariables = true;
       createDirectories = true;
 
       publicShare = null;
@@ -21,8 +27,8 @@ in {
       videos = "${config.home.homeDirectory}/vid";
 
       extraConfig = {
-        XDG_PROJECTS_DIR = "${config.home.homeDirectory}/prj";
-	XDG_MOUNT_DIR = "${config.home.homeDirectory}/mnt";
+        PROJECTS = "${config.home.homeDirectory}/prj";
+        MOUNT = "${config.home.homeDirectory}/mnt";
       };
     };
   };

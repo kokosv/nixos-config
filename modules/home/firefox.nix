@@ -15,6 +15,9 @@ in
     programs.firefox = {
       enable = true;
 
+      # configPath = ".mozilla/firefox"; # legacy
+      configPath = "${config.xdg.configHome}/mozilla/firefox"; # new
+
       profiles.default = {
 
         search = {

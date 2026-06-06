@@ -28,8 +28,8 @@
         query # treesitter queries
         vim
         vimdoc
-        # lua
-        # luadoc
+        lua
+        luadoc
 
         # General Development
         csv
@@ -49,8 +49,8 @@
         yaml
 
         # Rust Development
-        rust
-        toml # Also for ZMK `keymap.toml`
+        # rust
+        # toml # Also for ZMK `keymap.toml`
 
         # Web Development
         css
@@ -62,11 +62,11 @@
         php
         # php_only
         # phpdoc
-        # sql
+        sql
         # scss
         # twig
-        # tsx
-        # typescript
+        tsx
+        typescript
 
         # Web - other
         # astro

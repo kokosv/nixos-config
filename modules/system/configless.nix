@@ -30,6 +30,7 @@ in
       dosfstools
 
       dconf
+      tree-sitter
     ];
 
     programs.dconf.enable = true; # gtk theme
