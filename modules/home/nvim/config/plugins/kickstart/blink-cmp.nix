@@ -64,7 +64,7 @@
           # Optionally, set `auto_show = true` to show the documentation after a delay.
           documentation = {
             auto_show = true;
-            auto_show_delay_ms = 200;
+            auto_show_delay_ms = 100;
           };
         };
 
@@ -104,5 +104,25 @@
         };
       };
     };
+
+    extraConfigLua = ''
+
+      -- LSP hover on cursor hold (with overlap check)
+      vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+        callback = function()
+          -- Check if any floating window is already open
+          local float_visible = false
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_config(win).relative ~= "" then
+              float_visible = true
+              break
+            end
+          end
+          if not float_visible then
+            vim.lsp.buf.hover()
+          end
+        end,
+      })
+    '';
   };
 }

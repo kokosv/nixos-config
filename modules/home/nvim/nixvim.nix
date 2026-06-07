@@ -23,20 +23,20 @@ in
     ./config/plugins/kickstart/todo-comments.nix
     ./config/plugins/kickstart/mini.nix
     ./config/plugins/kickstart/treesitter.nix
-
-    # NOTE: Add/Configure additional plugins for Kickstart.nixvim
-    #
-    #  Here are some example plugins that I've included in the Kickstart repository.
-    #  Uncomment any of the lines below to enable them (you will need to restart nvim).
-
     ./config/plugins/kickstart/debug.nix
     ./config/plugins/kickstart/indent-blankline.nix
     ./config/plugins/kickstart/lint.nix
     ./config/plugins/kickstart/autopairs.nix
     ./config/plugins/kickstart/neo-tree.nix
+    ./config/plugins/kickstart/nvterm.nix
+    ./config/plugins/kickstart/copilot-chat.nix
+    ./config/plugins/kickstart/bufferline.nix
+    ./config/plugins/kickstart/lazygit.nix
 
     # NOTE: Configure your own plugins `see https://nix-community.github.io/nixvim/`
     # Add your plugins to ./config/plugins/custom and import them below
+
+    # ./example.nix
   ];
 
   config = lib.mkIf cfg.enable {
@@ -218,7 +218,7 @@ in
         cursorline = true;
 
         # Minimal number of screen lines to keep above and below the cursor.
-        scrolloff = 10;
+        scrolloff = 3;
 
         # if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
         # instead raise a dialog asking if you wish to save the current file(s)
@@ -313,6 +313,41 @@ in
             desc = "Move focus to the upper window";
           };
         }
+        {
+          mode = [
+            "n"
+            "v"
+          ];
+          key = "<leader>ca";
+          action.__raw = ''
+            function()
+              vim.lsp.buf.code_action()
+            end
+          '';
+          options = {
+            desc = "LSP: Code Action";
+          };
+        }
+        {
+          mode = "v";
+          key = ">";
+          action = ">gv";
+          options = {
+            desc = "Indent right and keep visual selection";
+            noremap = true;
+            silent = true;
+          };
+        }
+        {
+          mode = "v";
+          key = "<";
+          action = "<gv";
+          options = {
+            desc = "Indent left and keep visual selection";
+            noremap = true;
+            silent = true;
+          };
+        }
       ];
 
       # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html
@@ -345,11 +380,11 @@ in
         settings = {
           severity_sort = true;
           float = {
-            border = "rounded";
+            border = "single";
             source = "if_many";
           };
           underline = {
-            severity.__raw = ''vim.diagnostic.severity.ERROR'';
+            severity.__raw = "vim.diagnostic.severity.ERROR";
           };
           signs.__raw = ''
             vim.g.have_nerd_font and {
@@ -378,6 +413,20 @@ in
           };
         };
       };
+
+      extraConfigLua = ''
+
+        -- global floating popup border
+        vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#ffffff" })
+        vim.o.winborder = "single"
+
+        -- show diagnostics on cursor hold
+        vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+          callback = function()
+            vim.diagnostic.open_float(nil, { focus = false })
+          end,
+        })
+      '';
 
       plugins = {
         # Adds icons for plugins to utilize in ui

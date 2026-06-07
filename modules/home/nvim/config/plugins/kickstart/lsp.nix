@@ -7,6 +7,11 @@
     # https://nix-community.github.io/nixvim/plugins/fidget/index.html
     plugins.fidget = {
       enable = true;
+      settings.progress = {
+        suppress_on_insert = true;
+        ignore_done_already = true;
+        poll_rate = 1;
+      };
     };
 
     # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html
@@ -297,6 +302,10 @@
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
           end, '[T]oggle Inlay [H]ints')
         end
+        -- Enable inlay hints by default
+        vim.schedule(function()
+          vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+        end)
       '';
     };
   };
