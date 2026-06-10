@@ -31,6 +31,9 @@ in
       ltla = "eza -T -l -a -L ";
 
       nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
+      nixbld = "sudo nixos-rebuild build --flake ~/.nixos-config#kt480";
+      nixtst = "sudo nixos-rebuild test --flake ~/.nixos-config#kt480";
+
       kys = "sudo shutdown -h now";
 
       # connect monitor settings
