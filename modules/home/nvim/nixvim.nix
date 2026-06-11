@@ -420,11 +420,36 @@ in
         vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#ffffff" })
         vim.o.winborder = "single"
 
-        -- show diagnostics on cursor hold
+        -- -- show diagnostics on cursor hold
+        -- vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+        --   callback = function()
+        --     vim.diagnostic.open_float(nil, { focus = false })
+        --   end,
+        -- })
+
+        local function show_diagnostic_float()
+          local float_opts = {
+            focus = false,
+            scope = "cursor",
+            border = "single",
+          }
+          
+          -- Check if any floating window is already open
+          local float_visible = false
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_config(win).relative ~= "" then
+              float_visible = true
+              break
+            end
+          end
+          
+          if not float_visible then
+            pcall(vim.diagnostic.open_float, 0, float_opts)
+          end
+        end
+
         vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-          callback = function()
-            vim.diagnostic.open_float(nil, { focus = false })
-          end,
+          callback = show_diagnostic_float,
         })
       '';
 
