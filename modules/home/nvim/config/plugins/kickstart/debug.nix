@@ -122,7 +122,7 @@
       }
       {
         mode = "n";
-        key = "<leader>b";
+        key = "F6";
         action.__raw = ''
           function()
             require('dap').toggle_breakpoint()
@@ -134,7 +134,7 @@
       }
       {
         mode = "n";
-        key = "<leader>B";
+        key = "F7";
         action.__raw = ''
           function()
             require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
@@ -148,7 +148,7 @@
       # in case of unhandled exception.
       {
         mode = "n";
-        key = "<F7>";
+        key = "<F4>";
         action.__raw = ''
           function()
             require('dapui').toggle()

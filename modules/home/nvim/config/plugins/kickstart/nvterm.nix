@@ -8,60 +8,60 @@
     ];
 
     keymaps = [
-      # {
-      #   mode = "n";
-      #   key = "<leader>h";
-      #   action.__raw = ''
-      #     function()
-      #       require("nvterm.terminal").new("horizontal")
-      #     end
-      #   '';
-      #   options = {
-      #     desc = "New terminal (horizontal split)";
-      #   };
-      # }
-      # {
-      #   mode = "n";
-      #   key = "<leader>v";
-      #   action.__raw = ''
-      #     function()
-      #       require("nvterm.terminal").new("vertical")
-      #     end
-      #   '';
-      #   options = {
-      #     desc = "New terminal (vertical split)";
-      #   };
-      # }
-      # {
-      #   mode = [
-      #     "n"
-      #     "t"
-      #   ];
-      #   key = "<A-h>";
-      #   action.__raw = ''
-      #     function()
-      #       require("nvterm.terminal").toggle("horizontal")
-      #     end
-      #   '';
-      #   options = {
-      #     desc = "Toggle horizontal terminal";
-      #   };
-      # }
-      # {
-      #   mode = [
-      #     "n"
-      #     "t"
-      #   ];
-      #   key = "<A-v>";
-      #   action.__raw = ''
-      #     function()
-      #       require("nvterm.terminal").toggle("vertical")
-      #     end
-      #   '';
-      #   options = {
-      #     desc = "Toggle vertical terminal";
-      #   };
-      # }
+      {
+        mode = "n";
+        key = "<leader>th";
+        action.__raw = ''
+          function()
+            require("nvterm.terminal").new("horizontal")
+          end
+        '';
+        options = {
+          desc = "New terminal (horizontal split)";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>tv";
+        action.__raw = ''
+          function()
+            require("nvterm.terminal").new("vertical")
+          end
+        '';
+        options = {
+          desc = "New terminal (vertical split)";
+        };
+      }
+      {
+        mode = [
+          "n"
+          "t"
+        ];
+        key = "<leader>oh";
+        action.__raw = ''
+          function()
+            require("nvterm.terminal").toggle("horizontal")
+          end
+        '';
+        options = {
+          desc = "Toggle horizontal terminal";
+        };
+      }
+      {
+        mode = [
+          "n"
+          "t"
+        ];
+        key = "<leader>ov";
+        action.__raw = ''
+          function()
+            require("nvterm.terminal").toggle("vertical")
+          end
+        '';
+        options = {
+          desc = "Toggle vertical terminal";
+        };
+      }
       {
         mode = [
           "n"
@@ -88,18 +88,18 @@
           type_opts = {
             horizontal = { 
               location = "rightbelow", 
-              split_ratio = 0.3 
+              split_ratio = 0.2 
             },
             vertical = { 
               location = "rightbelow", 
-              split_ratio = 0.5 
+              split_ratio = 0.3 
             },
             float = {
               relative = 'editor',
-              row = 0.3,
+              row = 0.25,
               col = 0.25,
               width = 0.5,
-              height = 0.4,
+              height = 0.5,
               border = "single",
             }
           }
