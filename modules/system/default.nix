@@ -16,6 +16,7 @@
     ./moonlight.nix
     ./trackpoint.nix
     ./xsecurelock.nix
+    ./zsh.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -49,6 +50,9 @@
       default = false;
     };
     xsecurelock.enable = lib.mkEnableOption "lock screen with pass" // {
+      default = true;
+    };
+    zsh.enable = lib.mkEnableOption "z shell" // {
       default = true;
     };
 

@@ -22,5 +22,6 @@
   # Enable/disable home modules - example: "clipse.enable = false;"
   home.modules = {
     clipse.enable = false;
+    shell.enable = false;
   };
 }

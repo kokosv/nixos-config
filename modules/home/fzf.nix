@@ -1,14 +1,21 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.home.modules.fzf;
-in {
+in
+{
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ fzf ];
 
     programs.fzf = {
       enable = true;
-      enableBashIntegration = true;
+      # enableBashIntegration = true;
+      enableZshIntegration = true;
 
       defaultOptions = [
         "--style minimal"

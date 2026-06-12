@@ -23,6 +23,7 @@
 
     # shell aliases and func
     ./shell.nix
+    ./zsh/zsh.nix
 
     # browser
     ./firefox.nix
@@ -93,6 +94,10 @@
     shell.enable = lib.mkEnableOption "shell aliases and func" // {
       default = true;
     };
+    zsh.enable = lib.mkEnableOption "z shell" // {
+      default = true;
+    };
+
     firefox.enable = lib.mkEnableOption "browser" // {
       default = true;
     };
