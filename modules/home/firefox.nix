@@ -26,7 +26,15 @@ in
           force = true; # force overide to skip having to delete the search.json.mozlz4.hm-backup file every rebuild
         };
 
+        userContent = ''
+          .logo-and-wordmark-wrapper {
+            display: none !important;
+          }
+        '';
+
         settings = {
+          # load custom css from /chrome/usrContent.css
+          "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
 
           "widget.use-xdg-desktop-portal.file-picker" = 1;
           "nglayout.enable_drag_images" = false;
