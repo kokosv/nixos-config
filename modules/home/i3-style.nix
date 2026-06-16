@@ -45,6 +45,8 @@ in
       terminal = "kitty";
       menu = "rofi";
 
+      bars = [ ]; # disable i3bar
+
       #      bars = [{
       #        position = "top";
       #        statusCommand = "${pkgs.i3blocks}/bin/i3blocks";
@@ -96,15 +98,17 @@ in
         "XF86AudioMicMute" = "exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; # F4 (Mute mic)
         "XF86MonBrightnessDown" = "exec brightnessctl set 10%-"; # F5 (Brightness down)
         "XF86MonBrightnessUp" = "exec brightnessctl set 10%+"; # F6 (Brightness up)
-        #	"XF86Display" = "";                      # F7 (Second monitor mode)
+        "XF86Display" = "exec --no-startup-id polybar-msg cmd toggle"; # F7 (Second monitor mode) - show/hide polybar
         "XF86WLAN" = "exec --no-startup-id rofi-network-manager"; # F8 (Network)
         "XF86Tools" = "exec --no-startup-id rofi-systemd"; # F9 (Gear)
         "XF86Bluetooth" = "exec --no-startup-id rofi-bluetooth"; # F10 (Bluetooth)
-        #	"XF86Keyboard" = "";                     # F11 (Keyboard)
+        # "XF86Keyboard" = "exec --no-startup-id polybar-msg cmd toggle"; # F11 (Keyboard)
         "XF86Favorites" = "exec --no-startup-id rofi -show p -modi p:rofi-power-menu --symbols --text"; # F12 (Star)
 
+        # screenshot
         "Print" = "exec flameshot gui";
 
+        # kill app
         "${super}+k" = "kill";
 
         # open programs
@@ -156,7 +160,20 @@ in
             class = "^bluetui$";
           };
         }
-
+        {
+          command = "floating enable";
+          criteria = {
+            class = "^Yad$";
+            title = "^yad-calendar$";
+          };
+        }
+        {
+          command = "floating enable, border none";
+          criteria = {
+            class = "^Yad$";
+            title = "^System$";
+          };
+        }
       ];
 
     };

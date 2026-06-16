@@ -20,6 +20,10 @@ in
       unzip
       yt-dlp
       ffmpeg
+      inotify-tools
+      coreutils
+      yad
+
       qalculate-gtk
       bluetui
       lorien # paint
@@ -28,6 +32,7 @@ in
       gearlever # appimage manager
       feh # img viewer
       # vimiv-qt # img viewer vim bindings
+
     ];
   };
 }

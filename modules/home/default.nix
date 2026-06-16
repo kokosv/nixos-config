@@ -85,7 +85,7 @@
     picom.enable = lib.mkEnableOption "compositor" // {
       default = true;
     };
-    polybar.enable = lib.mkEnableOption "top bar" // {
+    polybar.enable = lib.mkEnableOption "status bar" // {
       default = true;
     };
     kitty.enable = lib.mkEnableOption "terminal" // {
