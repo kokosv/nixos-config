@@ -29,6 +29,7 @@ in
       ntfs3g
       dosfstools
 
+      kdePackages.breeze-icons
       dconf
     ];
 

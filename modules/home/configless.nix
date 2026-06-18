@@ -21,6 +21,7 @@ in
       yt-dlp
       ffmpeg
       inotify-tools
+      libnotify
       coreutils
       yad
 
