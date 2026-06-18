@@ -28,7 +28,7 @@ in
 
       extraConfig = {
         PROJECTS = "${config.home.homeDirectory}/prj";
-        MOUNT = "${config.home.homeDirectory}/mnt";
+        MOUNT = "${config.home.homeDirectory}/mnt/usb";
       };
     };
   };
