@@ -16,7 +16,7 @@
     ./picom.nix
 
     # top bar
-    ./polybar/polybar.nix
+    ./polybar.nix
 
     # terminal
     ./kitty.nix
