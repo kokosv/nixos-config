@@ -11,6 +11,7 @@ in
 {
   config = lib.mkIf cfg.enable {
 
+    # requred for zsh setup
     environment.systemPackages = with pkgs; [ zsh ];
     environment.shells = with pkgs; [ zsh ];
     environment.pathsToLink = [ "/share/zsh" ];

@@ -78,10 +78,40 @@ in
         # Key bindings
         # ============================================
         # bindkey '^I' expand-or-complete # bash like tab - disabled conflicting with plugin zsh-fzf-tab
+
+        # Right arrow - move cursor one character right
         bindkey '^[[C' forward-char
+
+        # Left arrow - move cursor one character left
         bindkey '^[[D' backward-char
+
+        # Ctrl+Right to move forward one word
+        bindkey '^[[1;5C' forward-word
+
+        # Ctrl+Left to move backward one word
+        bindkey '^[[1;5D' backward-word
+
+        # Ctrl+Delete to delete forward one word
+        bindkey '^[[3;5~' kill-word
+
+        # Ctrl+Backspace to delete backward one word
+        bindkey '^H' backward-kill-word
+
+        # Ctrl+Space - accept autosuggestion
         bindkey '^@' autosuggest-accept
-        bindkey '^[^?' backward-kill-word
+
+        # Disable Ctrl+D (closes terminal)
+        setopt IGNORE_EOF
+
+        # Unbind default fzf keybinds
+        bindkey -r '^T'     # Remove Ctrl+T (files)
+        bindkey -r '^R'     # Remove Ctrl+R (history)
+        bindkey -r '^[c'    # Remove Alt+C (directories)
+
+        # Custom fzf keybindings
+        bindkey '^F' fzf-file-widget      # Ctrl+F for files
+        bindkey '^B' fzf-history-widget   # Ctrl+H for history
+        bindkey '^D' fzf-cd-widget        # Ctrl+D for directories
 
         # ============================================
         # nix-your-shell
