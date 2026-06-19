@@ -66,6 +66,7 @@ in
             # "keyboard"
             "time"
             "date"
+            "notifications"
             "powermenu"
           ];
 
@@ -88,7 +89,7 @@ in
 
           label-focused-foreground = color;
           label-unfocused-foreground = "#666666"; # dark gray
-          label-urgent-foreground = "#FF6B6B"; # red
+          label-urgent-foreground = "#fc4444"; # red
 
           index-sort = true;
 
@@ -99,6 +100,17 @@ in
           label-focused-padding = 2;
           label-unfocused-padding = 2;
           label-urgent-padding = 2;
+        };
+
+        "module/notifications" = {
+          type = "custom/script";
+          exec = "echo '󰂚'";
+          interval = 5;
+          label = "%output%";
+          label-foreground = color;
+
+          click-left = "${pkgs.coreutils}/bin/seq 1 10 | while read i; do ${pkgs.dunst}/bin/dunstctl history-pop; done";
+          click-right = "${pkgs.dunst}/bin/dunstctl close-all";
         };
 
         "module/date" = {
@@ -365,7 +377,7 @@ in
             choice=$(printf "Shutdown\nReboot\nSuspend\nHibernate\nLogout\nLock" | \
               ${pkgs.yad}/bin/yad --list \
                 --width=120 \
-                --height=200 \
+                --height=190 \
                 --posx=-1 \
                 --posy=30 \
                 --fixed \
@@ -375,9 +387,8 @@ in
                 --skip-taskbar \
                 --on-top \
                 --title="powermenu" \
-                --column="Action" \
-                --print-column=1 \
-                --button="":0 2>/dev/null | \
+                --column=""\
+                --print-column=1 2>/dev/null | \
               ${pkgs.gnugrep}/bin/grep -E "Shutdown|Reboot|Suspend|Hibernate|Logout|Lock" | \
               ${pkgs.coreutils}/bin/cut -d'|' -f1)
 

@@ -19,7 +19,7 @@ in
       settings = {
         global = {
           origin = "top-right";
-          offset = "5x30";
+          offset = "5x35";
 
           font = "DepartureMono Nerd Font 12";
           frame_color = color;
@@ -28,7 +28,8 @@ in
           progress_bar = true;
           progress_bar_height = 4;
           progress_bar_frame_width = 1;
-          progress_bar_min_width = 150;
+          progress_bar_min_width = 200;
+          progress_bar_max_width = 400;
 
           progress_bar_color = "#b2b1ad";
           progress_bar_frame_color = "#666666";
@@ -46,7 +47,8 @@ in
           foreground = color;
           transparency = 0;
 
-          width = 300;
+          width = "(200,400)";
+          height = "(50,300)";
 
           padding = 5; # vertical
           horizontal_padding = 5; # horizontal
@@ -59,12 +61,12 @@ in
           mouse_middle_click = "close_all";
           mouse_right_click = "close_current";
 
-          history_length = 20;
-          sticky_history = false;
+          history_length = 10;
+          sticky_history = true;
 
           browser = "${pkgs.xdg-utils}/bin/xdg-open";
           show_indicators = true;
-
+          show_age_threshold = -1;
         };
 
         # 0 - until dismissed
@@ -73,23 +75,23 @@ in
           foreground = color;
           frame_color = color;
           highlight = color;
-          timeout = 2;
+          timeout = 3;
         };
 
         urgency_normal = {
           background = "#000000";
           foreground = color;
-          frame_color = "#FFEAA7";
+          frame_color = color; # "#fcd450";
           highlight = color;
-          timeout = 4;
+          timeout = 3;
         };
 
         urgency_critical = {
           background = "#000000";
           foreground = color;
-          frame_color = "#FF6B6B";
+          frame_color = "#fc4444";
           highlight = color;
-          timeout = 6;
+          timeout = 5;
         };
       };
     };
