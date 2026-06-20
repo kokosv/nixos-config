@@ -4,6 +4,7 @@
 
   r = "ranger";
   c = "clear";
+  nv = "nvim";
 
   ssh = "kitten ssh";
 

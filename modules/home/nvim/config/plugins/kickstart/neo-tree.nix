@@ -9,20 +9,31 @@
       enable = true;
 
       settings = {
+
+        open_files_do_not_replace_types = [ ];
+
         close_if_last_window = false;
+        open_files_in_last_window = true;
 
         filesystem = {
           follow_current_file = {
-            enable = true;
+            enabled = true;
             leave_dirs_open = true;
           };
+
+          use_libuv_file_watcher = true;
+
           window = {
+            position = "left";
+            width = 50;
+            auto_expand_width = false;
             mappings = {
               "\\" = "close_window";
             };
           };
         };
       };
+
     };
 
     # https://nix-community.github.io/nixvim/keymaps/index.html

@@ -96,7 +96,7 @@
             },
             float = {
               relative = 'editor',
-              row = 0.25,
+              row = 0.2,
               col = 0.25,
               width = 0.5,
               height = 0.5,
