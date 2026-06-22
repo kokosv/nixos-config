@@ -348,6 +348,19 @@ in
             silent = true;
           };
         }
+        {
+          mode = [
+            "i"
+            "v"
+          ];
+          key = "<C-BS>";
+          action = "<C-w>";
+          options = {
+            desc = "Delete previous word";
+            noremap = true;
+            silent = true;
+          };
+        }
       ];
 
       # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html

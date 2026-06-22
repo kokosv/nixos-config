@@ -25,7 +25,7 @@
 
           window = {
             position = "left";
-            width = 50;
+            width = 40;
             auto_expand_width = false;
             mappings = {
               "\\" = "close_window";

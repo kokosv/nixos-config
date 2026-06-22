@@ -8,30 +8,30 @@
     ];
 
     keymaps = [
-      {
-        mode = "n";
-        key = "<leader>th";
-        action.__raw = ''
-          function()
-            require("nvterm.terminal").new("horizontal")
-          end
-        '';
-        options = {
-          desc = "New terminal (horizontal split)";
-        };
-      }
-      {
-        mode = "n";
-        key = "<leader>tv";
-        action.__raw = ''
-          function()
-            require("nvterm.terminal").new("vertical")
-          end
-        '';
-        options = {
-          desc = "New terminal (vertical split)";
-        };
-      }
+      # {
+      #   mode = "n";
+      #   key = "<leader>th";
+      #   action.__raw = ''
+      #     function()
+      #       require("nvterm.terminal").new("horizontal")
+      #     end
+      #   '';
+      #   options = {
+      #     desc = "New terminal (horizontal split)";
+      #   };
+      # }
+      # {
+      #   mode = "n";
+      #   key = "<leader>tv";
+      #   action.__raw = ''
+      #     function()
+      #       require("nvterm.terminal").new("vertical")
+      #     end
+      #   '';
+      #   options = {
+      #     desc = "New terminal (vertical split)";
+      #   };
+      # }
       {
         mode = [
           "n"
@@ -75,6 +75,14 @@
         '';
         options = {
           desc = "Toggle floating terminal";
+        };
+      }
+      {
+        mode = "t";
+        key = "<C-BS>";
+        action = "<C-h>";
+        options = {
+          desc = "Delete previous word in terminal";
         };
       }
     ];
