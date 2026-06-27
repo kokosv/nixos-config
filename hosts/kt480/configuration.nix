@@ -243,6 +243,9 @@
       PasswordAuthentication = false;
       PermitRootLogin = "no";
       KbdInteractiveAuthentication = false;
+      ChallengeResponseAuthentication = false;
+      UsePAM = false;
+      AllowUsers = [ "koko" ];
     };
   };
 
