@@ -5,11 +5,11 @@ zstyle ':vcs_info:git:*' formats '%b'
 zstyle ':vcs_info:git:*' actionformats '%b|%a'
 
 function nix_shell_indicator() {
-  [[ -n "$IN_NIX_SHELL" ]] && echo "[nix shell] "
+  [[ -n "$IN_NIX_SHELL" ]] && echo "[nix>shell] "
 }
 
 function git_branch_indicator() {
-  [[ -n "$vcs_info_msg_0_" ]] && echo "[$vcs_info_msg_0_] "
+  [[ -n "$vcs_info_msg_0_" ]] && echo "[git>$vcs_info_msg_0_] "
 }
 
 local user_color='%F{15}'
