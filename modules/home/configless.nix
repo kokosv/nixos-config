@@ -33,7 +33,7 @@ in
       gearlever # appimage manager
       feh # img viewer
       # vimiv-qt # img viewer vim bindings
-
+      claude-code
     ];
   };
 }
