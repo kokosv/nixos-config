@@ -34,6 +34,7 @@ in
       feh # img viewer
       # vimiv-qt # img viewer vim bindings
       claude-code
+      suckit # recursive website content download
     ];
   };
 }
