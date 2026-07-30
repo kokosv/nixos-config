@@ -98,7 +98,7 @@
         # };
 
         # Elixir lsp
-        elixir_ls = {
+        elixirls = {
           enable = true;
         };
 

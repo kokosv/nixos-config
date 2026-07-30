@@ -126,19 +126,7 @@ in
       # Don't forget to disable the colorschemes you arent using
       #
       # If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-      colorschemes.wildcharm = {
-        enable = true;
-        settings = {
-          # Like many other themes, this one has different styles, and you could load
-          # any other, such as 'storm', 'moon', or 'day'.
-          # style = "night";
-          styles = {
-            comments = {
-              italic = false; # Disable italics in comments
-            };
-          };
-        };
-      };
+      colorscheme = "wildcharm";
 
       # https://nix-community.github.io/nixvim/NeovimOptions/index.html#globals
       globals = {

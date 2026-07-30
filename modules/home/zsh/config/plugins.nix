@@ -22,7 +22,7 @@
       name = "zsh-wd";
       src = zsh-wd;
       file = "share/wd/wd.plugin.zsh";
-      functions = [ "share/zsh/site-functions" ];
+      completions = [ "share/zsh/site-functions" ];
     }
     {
       name = "fzf-tab";
