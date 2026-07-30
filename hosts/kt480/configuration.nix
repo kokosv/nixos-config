@@ -52,31 +52,10 @@
   #  "nvidia"
   #];
 
-  # enable opengl (usually by default)
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [
-      intel-media-driver
-      libvdpau-va-gl
-    ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [
-      intel-media-driver
-      libvdpau-va-gl
-    ];
-  };
-
   # turn on the HDMI if detected
   #services.xserver.displayManager.sessionCommands = '' ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --auto || true '';
 
   networking.hostName = "kt480";
-
-  # Enable bluetooth
-  hardware = {
-    bluetooth = {
-      enable = true;
-      powerOnBoot = false;
-    };
-  };
 
   # Set your time zone.
   time.timeZone = "Europe/Bucharest";

@@ -22,6 +22,7 @@
 
     ./networking.nix
     ./ssh-server.nix
+    ./hardware-extra.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -61,6 +62,9 @@
       default = true;
     };
 
+    hardware-extra.enable = lib.mkEnableOption "manual hardware conf" // {
+      default = true;
+    };
     networking.enable = lib.mkEnableOption "networking" // {
       default = true;
     };
