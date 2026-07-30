@@ -21,6 +21,7 @@
     ./mpd.nix
 
     ./networking.nix
+    ./ssh-server.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -61,6 +62,9 @@
     };
 
     networking.enable = lib.mkEnableOption "networking" // {
+      default = true;
+    };
+    ssh-server.enable = lib.mkEnableOption "ssh server" // {
       default = true;
     };
     environmental-variables.enable = lib.mkEnableOption "environmental variables" // {

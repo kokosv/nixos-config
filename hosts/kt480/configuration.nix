@@ -220,23 +220,6 @@
   #   enableSSHSupport = true;
   # };
 
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # ssh server (accepting requests) // ssh client (making requests) in a home module
-  services.openssh = {
-    enable = true;
-    # ports = [ 22 ];
-    settings = {
-      PasswordAuthentication = false;
-      PermitRootLogin = "no";
-      KbdInteractiveAuthentication = false;
-      ChallengeResponseAuthentication = false;
-      UsePAM = false;
-      AllowUsers = [ "koko" ];
-    };
-  };
-
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave

@@ -58,7 +58,7 @@
 
     # terminal tools
     ./git.nix
-    ./ssh.nix
+    ./ssh-client.nix
     ./btop.nix
     ./eza.nix
     ./fzf.nix
@@ -135,7 +135,7 @@
     git.enable = lib.mkEnableOption "git version control" // {
       default = true;
     };
-    ssh.enable = lib.mkEnableOption "ssh client" // {
+    ssh-client.enable = lib.mkEnableOption "ssh client" // {
       default = true;
     };
     btop.enable = lib.mkEnableOption "tui system monitor" // {
