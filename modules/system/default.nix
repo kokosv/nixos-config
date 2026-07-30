@@ -20,6 +20,8 @@
 
     ./mpd.nix
 
+    ./networking.nix
+
     ./environmental-variables.nix
     ./services.nix
     ./configless.nix
@@ -58,6 +60,9 @@
       default = true;
     };
 
+    networking.enable = lib.mkEnableOption "networking" // {
+      default = true;
+    };
     environmental-variables.enable = lib.mkEnableOption "environmental variables" // {
       default = true;
     };

@@ -68,25 +68,7 @@
   # turn on the HDMI if detected
   #services.xserver.displayManager.sessionCommands = '' ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --auto || true '';
 
-  # Enables wireless support via wpa_supplicant.
-  # networking.wireless.enable = true;
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking = {
-    hostName = "kt480";
-    enableIPv6 = true;
-    networkmanager = {
-      enable = true;
-      wifi = {
-        backend = "iwd";
-        powersave = false;
-      };
-    };
-  };
+  networking.hostName = "kt480";
 
   # Enable bluetooth
   hardware = {
@@ -254,12 +236,6 @@
       AllowUsers = [ "koko" ];
     };
   };
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
