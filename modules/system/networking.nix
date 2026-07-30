@@ -41,12 +41,14 @@ in
 
     services.resolved = {
       enable = true;
-      dnssec = "allow-downgrade";
-      domains = [ "~." ];
-      fallbackDns = [
-        "86.54.11.100"
-        "86.54.11.200"
-      ];
+      settings.Resolve = {
+        DNSSEC = "allow-downgrade";
+        Domains = [ "~." ];
+        FallbackDNS = [
+          "86.54.11.100"
+          "86.54.11.200"
+        ];
+      };
     };
   };
 }
