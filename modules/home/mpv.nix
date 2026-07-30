@@ -21,6 +21,10 @@ in
         sub-auto = "fuzzy";
         keep-open = "yes";
 
+        hwdec = "vaapi";
+        vo = "gpu";
+        gpu-context = "x11egl";
+
         ytdl-raw-options = "no-playlist=";
         ytdl-raw-options-append = "cookies-from-browser=firefox";
       };

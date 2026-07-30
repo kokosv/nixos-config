@@ -92,6 +92,10 @@ in
 
           "toolkit.coverage.opt-out" = true;
           "toolkit.coverage.endpoint.base" = "";
+
+          "media.ffmpeg.vaapi.enabled" = true;
+          "media.hardware-video-decoding.enabled" = true;
+          "media.hardware-video-decoding.force-enabled" = true;
         };
       };
     };
