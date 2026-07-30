@@ -78,6 +78,7 @@
   # Enable networking
   networking = {
     hostName = "kt480";
+    enableIPv6 = true;
     networkmanager = {
       enable = true;
       wifi = {
