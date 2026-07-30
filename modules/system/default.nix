@@ -18,6 +18,8 @@
     ./xsecurelock.nix
     ./zsh.nix
 
+    ./mpd.nix
+
     ./environmental-variables.nix
     ./services.nix
     ./configless.nix
@@ -61,6 +63,9 @@
     };
     services.enable = lib.mkEnableOption "services configs" // {
       default = true;
+    };
+    mpd.enable = lib.mkEnableOption "music player daemon" // {
+      default = false;
     };
     configless.enable = lib.mkEnableOption "configless stuff" // {
       default = true;
