@@ -57,23 +57,6 @@
 
   networking.hostName = "kt480";
 
-  # Set your time zone.
-  time.timeZone = "Europe/Bucharest";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "bg_BG.UTF-8";
-    LC_IDENTIFICATION = "bg_BG.UTF-8";
-    LC_MEASUREMENT = "bg_BG.UTF-8";
-    LC_MONETARY = "bg_BG.UTF-8";
-    LC_NAME = "bg_BG.UTF-8";
-    LC_NUMERIC = "bg_BG.UTF-8";
-    LC_PAPER = "bg_BG.UTF-8";
-    LC_TELEPHONE = "bg_BG.UTF-8";
-    LC_TIME = "bg_BG.UTF-8";
-  };
 
   # Configure keymap in X11
   services = {
@@ -127,26 +110,8 @@
     HibernateDelaySec = "10min";
   };
 
-  xdg.portal = {
-    enable = true;
-
-    config = {
-      common.default = "gtk";
-    };
-
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-gtk
-    ];
-  };
-
   # realtimekit security service handles realtime scheduling priority to user processes on demand
   security.rtkit.enable = true;
-
-  # Configure console defaults
-  console = {
-    keyMap = "dvorak";
-    font = "DepartureMono Nerd Font";
-  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users = {
@@ -184,11 +149,6 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
 
-  ];
-
-  # Fonts
-  fonts.packages = with pkgs; [
-    nerd-fonts.departure-mono
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

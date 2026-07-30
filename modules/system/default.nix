@@ -23,6 +23,7 @@
     ./networking.nix
     ./ssh-server.nix
     ./hardware-extra.nix
+    ./customization.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -62,6 +63,9 @@
       default = true;
     };
 
+    customization.enable = lib.mkEnableOption "locale, fonts, console, portal" // {
+      default = true;
+    };
     hardware-extra.enable = lib.mkEnableOption "manual hardware conf" // {
       default = true;
     };
