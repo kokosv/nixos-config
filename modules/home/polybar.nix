@@ -63,7 +63,7 @@ in
             "brightness"
             "battery1"
             "battery0"
-            # "keyboard"
+            "keyboard-layout"
             "time"
             "date"
             "notifications"
@@ -102,6 +102,44 @@ in
           label-urgent-padding = 2;
         };
 
+        "module/powermenu" = {
+          type = "custom/script";
+          exec = "echo ⏻";
+          interval = 5;
+          label = "%output%";
+          label-foreground = color;
+          click-left = "${pkgs.writeShellScript "power-popup" ''
+            #!/run/current-system/sw/bin/bash
+
+            choice=$(printf "Shutdown\nReboot\nSuspend\nHibernate\nLogout\nLock" | \
+              ${pkgs.yad}/bin/yad --list \
+                --width=120 \
+                --height=190 \
+                --posx=-1 \
+                --posy=30 \
+                --fixed \
+                --undecorated \
+                --no-buttons \
+                --close-on-unfocus \
+                --skip-taskbar \
+                --on-top \
+                --title="powermenu" \
+                --column=""\
+                --print-column=1 2>/dev/null | \
+              ${pkgs.gnugrep}/bin/grep -E "Shutdown|Reboot|Suspend|Hibernate|Logout|Lock" | \
+              ${pkgs.coreutils}/bin/cut -d'|' -f1)
+
+            case "$choice" in
+              "Shutdown") ${pkgs.systemd}/bin/poweroff ;;
+              "Reboot") ${pkgs.systemd}/bin/reboot ;;
+              "Suspend") ${pkgs.systemd}/bin/systemctl suspend ;;
+              "Hibernate") ${pkgs.systemd}/bin/systemctl hibernate ;;
+              "Logout") i3-msg exit ;;
+              "Lock") ${pkgs.xsecurelock}/bin/xsecurelock ;;
+            esac
+          ''}";
+        };
+
         "module/notifications" = {
           type = "custom/script";
           exec = "echo '󰂚'";
@@ -136,6 +174,20 @@ in
           label = "%time%";
           label-foreground = color;
           interval = 1;
+        };
+
+        "module/keyboard-layout" = {
+          type = "internal/xkeyboard";
+          blacklist-0 = "num lock";
+          blacklist-1 = "scroll lock";
+          blacklist-2 = "caps lock";
+
+          "layout-icon-default" = "en-dv";
+          "layout-icon-0" = "us;en-dv";
+          "layout-icon-1" = "bg_phonetic_dvorak;bg-dv";
+
+          label-layout = "%icon%";
+          label-layout-foreground = color;
         };
 
         "module/battery0" = {
@@ -365,43 +417,6 @@ in
           click-right = "${pkgs.networkmanager}/bin/nmcli radio wifi off";
         };
 
-        "module/powermenu" = {
-          type = "custom/script";
-          exec = "echo ⏻";
-          interval = 5;
-          label = "%output%";
-          label-foreground = color;
-          click-left = "${pkgs.writeShellScript "power-popup" ''
-            #!/run/current-system/sw/bin/bash
-
-            choice=$(printf "Shutdown\nReboot\nSuspend\nHibernate\nLogout\nLock" | \
-              ${pkgs.yad}/bin/yad --list \
-                --width=120 \
-                --height=190 \
-                --posx=-1 \
-                --posy=30 \
-                --fixed \
-                --undecorated \
-                --no-buttons \
-                --close-on-unfocus \
-                --skip-taskbar \
-                --on-top \
-                --title="powermenu" \
-                --column=""\
-                --print-column=1 2>/dev/null | \
-              ${pkgs.gnugrep}/bin/grep -E "Shutdown|Reboot|Suspend|Hibernate|Logout|Lock" | \
-              ${pkgs.coreutils}/bin/cut -d'|' -f1)
-
-            case "$choice" in
-              "Shutdown") ${pkgs.systemd}/bin/poweroff ;;
-              "Reboot") ${pkgs.systemd}/bin/reboot ;;
-              "Suspend") ${pkgs.systemd}/bin/systemctl suspend ;;
-              "Hibernate") ${pkgs.systemd}/bin/systemctl hibernate ;;
-              "Logout") i3-msg exit ;;
-              "Lock") ${pkgs.xsecurelock}/bin/xsecurelock ;;
-            esac
-          ''}";
-        };
       };
     };
   };

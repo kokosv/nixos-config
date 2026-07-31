@@ -24,6 +24,7 @@
     ./ssh-server.nix
     ./hardware-extra.nix
     ./customization.nix
+    ./keyboard/keyboard-layout.nix
 
     ./environmental-variables.nix
     ./services.nix
@@ -63,6 +64,9 @@
       default = true;
     };
 
+    keyboard-layout.enable = lib.mkEnableOption "keyboard layouts and switching" // {
+      default = true;
+    };
     customization.enable = lib.mkEnableOption "locale, fonts, console, portal" // {
       default = true;
     };

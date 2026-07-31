@@ -68,10 +68,11 @@
       enable = true;
       autorun = true;
 
-      xkb = {
-        layout = "us";
-        variant = "dvorak";
-      };
+      # xkb moved to modules/system/keyboard-layout.nix
+      # xkb = {
+      #   layout = "us";
+      #   variant = "dvorak";
+      # };
 
       displayManager.startx.enable = true;
 
