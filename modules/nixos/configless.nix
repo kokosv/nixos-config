@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, pkgs, ... }: {
+  options.nixos.configless = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.modules.configless;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.nixos.configless = {
     environment.systemPackages = with pkgs; [
       curl
       wget
@@ -20,7 +12,7 @@ in
       # pci devices
       pciutils
 
-      # dirves health monitoring
+      # drives health monitoring
       smartmontools
 
       # mount
@@ -34,6 +26,5 @@ in
     ];
 
     programs.dconf.enable = true; # gtk theme
-
   };
 }

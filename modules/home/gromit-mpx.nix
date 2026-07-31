@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.gromitMpx = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.gromit-mpx;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.gromitMpx = { pkgs, ... }: {
     home.packages = with pkgs; [ gromit-mpx ];
 
     services.gromit-mpx = {
@@ -21,10 +13,10 @@ in
     # SHIFT-F9:  clear screen
     # CTRL-F9:   toggle visibility
     # ALT-F9:    quit Gromit-MPX
-    # F8:       undo last stroke
-    # SHIFT-F8: redo last undone stroke
+    # F8:        undo last stroke
+    # SHIFT-F8:  redo last undone stroke
     # SHIFT+pointer - blue
-    # SHIFT+pointer - yellow
+    # CTRL+pointer  - yellow
 
     # does not work, dunno why
 
@@ -46,7 +38,6 @@ in
     #       type = "eraser";
     #     }
     #   ];
-    # };
 
     # xdg.configFile."gromit-mpx/config".text = ''
     #   opacity = 0.80
@@ -63,6 +54,5 @@ in
     #   modifiers = CONTROL
     #   size = 20
     # '';
-
   };
 }

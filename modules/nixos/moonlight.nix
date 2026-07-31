@@ -1,17 +1,10 @@
-{ config, pkgs, lib, ... }:
+{ lib, pkgs, ... }: {
+  options.nixos.moonlight = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.modules.moonlight;
-in {
-  config = lib.mkIf cfg.enable {
+  config.nixos.moonlight = {
     environment.systemPackages = with pkgs; [ moonlight-qt ];
-    
     networking.firewall.allowedTCPPorts = [ 47984 47989 48010 ];
     networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 ];
-
-    hardware.graphics = {
-      enable = true;
-   };
-
+    hardware.graphics.enable = true;
   };
 }

@@ -1,16 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.usrDir = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.usr-dir;
-in
-{
-  config = lib.mkIf cfg.enable {
-
+  config.homeManager.usrDir = { config, ... }: {
     xdg.userDirs = {
       enable = true;
       setSessionVariables = true;

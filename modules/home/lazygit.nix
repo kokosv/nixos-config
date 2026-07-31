@@ -1,21 +1,12 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.lazygit = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.lazygit;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.lazygit = { pkgs, ... }: {
     home.packages = with pkgs; [ lazygit ];
 
     programs.lazygit = {
       enable = true;
       enableZshIntegration = true;
     };
-
   };
 }

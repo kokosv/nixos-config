@@ -1,29 +1,19 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.firefox = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.firefox;
-in
-{
-  config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ firefox ];
-
+  config.homeManager.firefox = { pkgs, config, ... }: {
     programs.firefox = {
       enable = true;
 
       # configPath = ".mozilla/firefox"; # legacy
-      configPath = "${config.xdg.configHome}/mozilla/firefox"; # new
+      configPath = "${config.xdg.configHome}/mozilla/firefox";
 
       profiles.default = {
 
         search = {
           default = "ddg";
           privateDefault = "ddg";
-          force = true; # force overide to skip having to delete the search.json.mozlz4.hm-backup file every rebuild
+          force = true; # force override to skip having to delete the search.json.mozlz4.hm-backup file every rebuild
         };
 
         userContent = ''

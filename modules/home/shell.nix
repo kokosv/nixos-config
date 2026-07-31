@@ -1,24 +1,14 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.shell = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.shell;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.shell = {
     home.shellAliases = {
-
       ".." = "cd ..";
       "..." = "cd ../..";
 
       r = "ranger";
       c = "clear";
 
-      # kitty terminal specific
       ssh = "kitten ssh";
 
       l = "eza";
@@ -36,29 +26,21 @@ in
 
       kys = "sudo shutdown -h now";
 
-      # connect monitor settings
       hdmiup = "xrandr --output HDMI-2 --mode 1920x1080 --above eDP-1";
       hdmir = "xrandr --output HDMI-2 --mode 1920x1080 --right-of eDP-1";
       hdmil = "xrandr --output HDMI-2 --mode 1920x1080 --left-of eDP-1";
-
-      # add lock screen
-      # lock = "";
-
     };
 
     programs.bash = {
       enable = true;
       initExtra = ''
-         
-        # direct usage of dir names - skip cd
+
         shopt -s autocd
 
-        # command history
         export HISTSIZE=1024
         export HISTFILESIZE=4096
         export HISTCONTROL=ignoredups
 
-        # fzf hook
         eval "$(direnv hook bash)"
 
         gitfkit() {
@@ -69,8 +51,8 @@ in
 
         sdir() {
           if [ "$#" -ne 2 ]; then
-        echo "Usage: sdir <level> <dir>"
-              return 1
+            echo "Usage: sdir <level> <dir>"
+            return 1
           fi
           level=$1
           dir=$2

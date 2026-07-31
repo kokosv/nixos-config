@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.thunderbird = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.thunderbird;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.thunderbird = { pkgs, ... }: {
     home.packages = with pkgs; [ thunderbird ];
 
     programs.thunderbird = {
@@ -23,6 +15,5 @@ in
       #   "mail.openpgp.fetch_pubkeys_from_gnupg" = true;
       # };
     };
-
   };
 }

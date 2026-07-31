@@ -1,9 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ lib, ... }: {
+  options.homeManager.sshClient = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.ssh-client;
-in {
-  config = lib.mkIf cfg.enable {
+  config.homeManager.sshClient = {
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;

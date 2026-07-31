@@ -1,16 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.dunst = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.dunst;
-  color = "#b2b1ad";
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.dunst = { pkgs, lib, ... }: {
     home.packages = with pkgs; [ dunst ];
 
     services.dunst = {
@@ -22,7 +13,7 @@ in
           offset = "5x35";
 
           font = "DepartureMono Nerd Font 12";
-          frame_color = color;
+          frame_color = "#b2b1ad";
           frame_width = 1;
           progress_bar_horizontal_alignment = "center";
           progress_bar = true;
@@ -44,14 +35,14 @@ in
           icon_corners_radius = 0;
 
           background = "#000000";
-          foreground = color;
+          foreground = "#b2b1ad";
           transparency = 0;
 
           width = "(200,400)";
           height = "(50,300)";
 
-          padding = 5; # vertical
-          horizontal_padding = 5; # horizontal
+          padding = 5;
+          horizontal_padding = 5;
           text_icon_padding = 0;
 
           corner_radius = 0;
@@ -72,25 +63,25 @@ in
         # 0 - until dismissed
         urgency_low = {
           background = "#000000";
-          foreground = color;
-          frame_color = color;
-          highlight = color;
+          foreground = "#b2b1ad";
+          frame_color = "#b2b1ad";
+          highlight = "#b2b1ad";
           timeout = 3;
         };
 
         urgency_normal = {
           background = "#000000";
-          foreground = color;
-          frame_color = color; # "#fcd450";
-          highlight = color;
+          foreground = "#b2b1ad";
+          frame_color = "#b2b1ad";
+          highlight = "#b2b1ad";
           timeout = 3;
         };
 
         urgency_critical = {
           background = "#000000";
-          foreground = color;
+          foreground = "#b2b1ad";
           frame_color = "#fc4444";
-          highlight = color;
+          highlight = "#b2b1ad";
           timeout = 5;
         };
       };

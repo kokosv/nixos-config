@@ -1,17 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.configless = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.configless;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.configless = { pkgs, ... }: {
     home.packages = with pkgs; [
-      ranger
       xclip
       xdotool
       fd

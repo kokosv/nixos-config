@@ -1,19 +1,17 @@
-{ config, pkgs, lib, ... }:
+{ lib, ... }: {
+  options.homeManager.git = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.git;
-in {
-  config = lib.mkIf cfg.enable {
+  config.homeManager.git = { pkgs, ... }: {
     home.packages = with pkgs; [ git ];
-    
+
     programs.git = {
       enable = true;
       settings = {
         user = {
           name = "kokosv";
-	  email = "kaloyansv@gmail.com";
-	};
-	init.defaultBranch = "main";
+          email = "kaloyansv@gmail.com";
+        };
+        init.defaultBranch = "main";
       };
 
 #      userName = "kokosv";

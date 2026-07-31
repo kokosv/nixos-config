@@ -1,23 +1,15 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.nixos.keyboardLayout = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.modules.keyboard-layout;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.nixos.keyboardLayout = {
     services.xserver.xkb = {
       layout = "us,bg_phonetic_dvorak";
       variant = "dvorak,";
-      options = "grp:shifts_toggle";
+      options = "grp:super_space_toggle";
       extraLayouts.bg_phonetic_dvorak = {
         description = "Bulgarian Phonetic Dvorak";
         languages = [ "bul" ];
-        symbolsFile = ./bg-phonetic-dvorak;
+        symbolsFile = ./_keyboard/bg-phonetic-dvorak;
       };
     };
   };

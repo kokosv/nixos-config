@@ -1,35 +1,21 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.kitty = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.kitty;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.kitty = { pkgs, ... }: {
     home.packages = with pkgs; [ kitty ];
 
     programs.kitty = {
       enable = true;
-
       settings = {
         confirm_os_window_close = 0;
         font_size = 13;
         font_family = "DepartureMono Nerd Font";
-        # background_opacity = "0.65";
         allow_hyperlinks = true;
       };
-
-      # themeFile = "GruvboxMaterialDarkHard";
-
       keybindings = {
         "ctrl+plus" = "change_font_size all +1.0";
         "ctrl+minus" = "change_font_size all -1.0";
       };
-
     };
   };
 }

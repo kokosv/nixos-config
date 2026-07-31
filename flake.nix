@@ -9,43 +9,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixvim = {
-      url = "github:nix-community/nixvim";
+    nixvim.url = "github:nix-community/nixvim";
+
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      nixvim,
-      ...
-    }@inputs:
+  outputs = inputs:
     let
-      system = "x86_64-linux";
-      lib = nixpkgs.lib;
-      extraSpecialArgs = { inherit system inputs; };
-      specialArgs = { inherit system inputs; };
+      lib = inputs.nixpkgs.lib;
+      modulesPath = ./modules;
     in
-    {
-      nixosConfigurations = {
-        kt480 = lib.nixosSystem {
-          modules = [
-            ./hosts/kt480/configuration.nix
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                inherit extraSpecialArgs;
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "hm-backup";
-                users.koko = import ./hosts/kt480/home.nix;
-              };
-            }
-          ];
-          specialArgs = specialArgs;
-        };
-      };
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = lib.filter
+        (path: lib.all
+          (c: !(lib.hasPrefix "_" c))
+          (lib.path.subpath.components (lib.path.removePrefix modulesPath path)))
+        (lib.filter (lib.hasSuffix ".nix")
+          (lib.filesystem.listFilesRecursive modulesPath));
+
+      systems = [ "x86_64-linux" ];
     };
 }

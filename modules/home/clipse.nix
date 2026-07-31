@@ -1,25 +1,15 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.clipse = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.clipse;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.clipse = { pkgs, ... }: {
     home.packages = with pkgs; [ clipse ];
 
     services.clipse = {
       enable = true;
-
       systemdTarget = "graphical-session.target";
       historySize = 32;
       allowDuplicates = false;
       imageDisplay.type = "kitty";
-
     };
   };
 }

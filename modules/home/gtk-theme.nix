@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.gtkTheme = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.gtk-theme;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.gtkTheme = { pkgs, lib, config, ... }: {
     home.packages = with pkgs; [
       libsForQt5.qt5ct
       kdePackages.breeze-gtk

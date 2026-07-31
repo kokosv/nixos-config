@@ -1,9 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ lib, ... }: {
+  options.homeManager.btop = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.btop;
-in {
-  config = lib.mkIf cfg.enable {
+  config.homeManager.btop = { pkgs, ... }: {
     home.packages = with pkgs; [ btop ];
 
     programs.btop = {

@@ -1,22 +1,11 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, pkgs, ... }: {
+  options.nixos.upower = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.modules.upower;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.nixos.upower = {
     environment.systemPackages = with pkgs; [ upower ];
-
     services.upower = {
       enable = true;
-
       noPollBatteries = true;
     };
-
   };
 }

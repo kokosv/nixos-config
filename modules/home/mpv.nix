@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.mpv = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.mpv;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.mpv = { pkgs, ... }: {
     home.packages = with pkgs; [ mpv ];
 
     programs.mpv = {
@@ -28,8 +20,6 @@ in
         ytdl-raw-options = "no-playlist=";
         ytdl-raw-options-append = "cookies-from-browser=firefox";
       };
-
     };
-
   };
 }

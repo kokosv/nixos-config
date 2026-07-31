@@ -1,10 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ lib, ... }: {
+  options.nixos.sshServer = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.modules.ssh-server;
-in {
-  config = lib.mkIf cfg.enable {
-    # ssh server (accepting requests) // ssh client (making requests) in a home module
+  config.nixos.sshServer = {
     services.openssh = {
       enable = true;
       # ports = [ 22 ];

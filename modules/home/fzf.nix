@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.fzf = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.fzf;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.fzf = { pkgs, ... }: {
     home.packages = with pkgs; [ fzf ];
 
     programs.fzf = {
@@ -26,6 +18,5 @@ in
         #"--preview 'cat {}'"
       ];
     };
-
   };
 }

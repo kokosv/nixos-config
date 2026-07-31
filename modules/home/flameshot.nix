@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.flameshot = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.flameshot;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.flameshot = { pkgs, ... }: {
     home.packages = with pkgs; [ flameshot ];
 
     services.flameshot = {
@@ -34,6 +26,5 @@ in
         };
       };
     };
-
   };
 }

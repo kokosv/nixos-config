@@ -1,15 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, ... }: {
+  options.homeManager.direnv = lib.mkOption { type = lib.types.deferredModule; };
 
-let
-  cfg = config.home.modules.direnv;
-in
-{
-  config = lib.mkIf cfg.enable {
+  config.homeManager.direnv = { pkgs, ... }: {
     home.packages = with pkgs; [
       direnv
       nix-direnv
