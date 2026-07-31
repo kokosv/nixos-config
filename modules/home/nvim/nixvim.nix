@@ -126,7 +126,7 @@ in
       # Don't forget to disable the colorschemes you arent using
       #
       # If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-      colorscheme = "wildcharm";
+      colorscheme = "default";
 
       # https://nix-community.github.io/nixvim/NeovimOptions/index.html#globals
       globals = {
@@ -157,6 +157,8 @@ in
       #  For more options, you can see `:help option-list`
       # https://nix-community.github.io/nixvim/NeovimOptions/index.html#opts
       opts = {
+        background = "dark";
+
         # Show line numbers
         number = true;
         # You can also add relative line numbers, to help with jumping.
@@ -416,6 +418,10 @@ in
       };
 
       extraConfigLua = ''
+
+        -- nvim 0.12 errors on unknown treesitter predicates instead of ignoring them;
+        -- is-not? was removed from nvim-treesitter but some grammar queries still use it
+        vim.treesitter.query.add_predicate("is-not?", function() return true end, { force = true })
 
         -- global floating popup border
         vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#ffffff" })
