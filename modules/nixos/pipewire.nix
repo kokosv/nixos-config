@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.pipewire = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.pipewire = {
+  config.nixos.pipewire = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [ pipewire ];
 
     services.pulseaudio.enable = false;

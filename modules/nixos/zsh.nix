@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.zsh = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.zsh = {
+  config.nixos.zsh = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [ zsh ];
     environment.shells = with pkgs; [ zsh ];
     environment.pathsToLink = [ "/share/zsh" ];

@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.tailscale = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.tailscale = { config, ... }: {
+  config.nixos.tailscale = { pkgs, config, ... }: {
     environment.systemPackages = with pkgs; [ tailscale ];
     services.tailscale.enable = true;
     networking.firewall = {

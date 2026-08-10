@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.configless = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.configless = {
+  config.nixos.configless = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
       curl
       wget

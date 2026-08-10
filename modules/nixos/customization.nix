@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.customization = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.customization = {
+  config.nixos.customization = { pkgs, ... }: {
     time.timeZone = "Europe/Bucharest";
 
     i18n.defaultLocale = "en_US.UTF-8";

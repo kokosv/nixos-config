@@ -1,7 +1,7 @@
-{ lib, pkgs, ... }: {
+{ lib, ... }: {
   options.nixos.hardware = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.nixos.hardware = {
+  config.nixos.hardware = { pkgs, ... }: {
     hardware = {
       graphics = {
         enable = true;
