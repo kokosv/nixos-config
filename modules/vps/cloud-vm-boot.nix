@@ -1,10 +1,10 @@
 { lib, ... }: {
-  options.server.cloudVmBoot = lib.mkOption { type = lib.types.deferredModule; };
+  options.vps.cloudVmBoot = lib.mkOption { type = lib.types.deferredModule; };
 
   # Boot config for a typical BIOS-booted KVM/QEMU cloud VM (Hetzner,
   # generic VPS providers, etc). Assumes disko lays out a GPT disk with
   # an ESP mounted at /boot, and boots via GRUB in "nodev" mode.
-  config.server.cloudVmBoot = {
+  config.vps.cloudVmBoot = {
     boot.loader.grub = {
       enable = true;
       efiSupport = true;

@@ -32,15 +32,15 @@
   outputs = inputs:
     let
       lib = inputs.nixpkgs.lib;
-      modulesPath = ./modules;
-    in
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = lib.filter
+      scanDir = root: lib.filter
         (path: lib.all
           (c: !(lib.hasPrefix "_" c))
-          (lib.path.subpath.components (lib.path.removePrefix modulesPath path)))
+          (lib.path.subpath.components (lib.path.removePrefix root path)))
         (lib.filter (lib.hasSuffix ".nix")
-          (lib.filesystem.listFilesRecursive modulesPath));
+          (lib.filesystem.listFilesRecursive root));
+    in
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = (scanDir ./modules) ++ (scanDir ./hosts);
 
       systems = [ "x86_64-linux" ];
     };

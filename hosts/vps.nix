@@ -3,7 +3,7 @@
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules =
-      (with config.server; [
+      (with config.vps; [
         ssh
         basePackages
         cloudVmBoot

@@ -1,7 +1,7 @@
 { lib, ... }: {
-  options.server.ssh = lib.mkOption { type = lib.types.deferredModule; };
+  options.vps.ssh = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.server.ssh = {
+  config.vps.ssh = {
     services.openssh = {
       enable = true;
       settings = {
