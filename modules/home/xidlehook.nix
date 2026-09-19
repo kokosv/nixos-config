@@ -15,7 +15,7 @@
           ${pkgs.xidlehook}/bin/xidlehook \
             --not-when-audio \
             --timer 600 \
-              '${pkgs.xorg.xset}/bin/xset dpms force off' \
+              '${pkgs.xset}/bin/xset dpms force off' \
               "" \
             --timer 900 \
               '${pkgs.systemd}/bin/systemctl hibernate' \
