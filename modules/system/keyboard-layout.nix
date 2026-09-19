@@ -5,7 +5,7 @@
     services.xserver.xkb = {
       layout = "us,bg_phonetic_dvorak";
       variant = "dvorak,";
-      options = "grp:lrshift_toggle";
+      options = "grp:shifts_toggle";
       extraLayouts.bg_phonetic_dvorak = {
         description = "Bulgarian Phonetic Dvorak";
         languages = [ "bul" ];
