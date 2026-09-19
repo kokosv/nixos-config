@@ -10,26 +10,26 @@
         inputs.nixvim.homeModules.nixvim
 
         # Plugins
-        ./_nvim/config/plugins/kickstart/gitsigns.nix
-        ./_nvim/config/plugins/kickstart/which-key.nix
-        ./_nvim/config/plugins/kickstart/telescope.nix
-        ./_nvim/config/plugins/kickstart/lsp.nix
-        ./_nvim/config/plugins/kickstart/conform.nix
-        ./_nvim/config/plugins/kickstart/blink-cmp.nix
-        ./_nvim/config/plugins/kickstart/todo-comments.nix
-        ./_nvim/config/plugins/kickstart/mini.nix
-        ./_nvim/config/plugins/kickstart/treesitter.nix
-        ./_nvim/config/plugins/kickstart/debug.nix
-        ./_nvim/config/plugins/kickstart/indent-blankline.nix
-        ./_nvim/config/plugins/kickstart/lint.nix
-        ./_nvim/config/plugins/kickstart/autopairs.nix
-        ./_nvim/config/plugins/kickstart/neo-tree.nix
-        ./_nvim/config/plugins/kickstart/nvterm.nix
-        ./_nvim/config/plugins/kickstart/copilot-chat.nix
-        ./_nvim/config/plugins/kickstart/bufferline.nix
-        ./_nvim/config/plugins/kickstart/lazygit.nix
+        ./_nvim/plugins/gitsigns.nix
+        ./_nvim/plugins/which-key.nix
+        ./_nvim/plugins/telescope.nix
+        ./_nvim/plugins/lsp.nix
+        ./_nvim/plugins/conform.nix
+        ./_nvim/plugins/blink-cmp.nix
+        ./_nvim/plugins/todo-comments.nix
+        ./_nvim/plugins/mini.nix
+        ./_nvim/plugins/treesitter.nix
+        ./_nvim/plugins/debug.nix
+        ./_nvim/plugins/indent-blankline.nix
+        ./_nvim/plugins/lint.nix
+        ./_nvim/plugins/autopairs.nix
+        ./_nvim/plugins/neo-tree.nix
+        ./_nvim/plugins/nvterm.nix
+        ./_nvim/plugins/copilot-chat.nix
+        ./_nvim/plugins/bufferline.nix
+        ./_nvim/plugins/lazygit.nix
 
-        # NOTE: Configure your own plugins in `_nvim/config/plugins/custom/`
+        # NOTE: Add your own plugins in `_nvim/plugins/`
         # ./example.nix
       ];
 
