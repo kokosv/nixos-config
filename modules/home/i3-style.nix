@@ -81,8 +81,6 @@
 
           keybindings = lib.mkOptionDefault {
 
-            "${super}+space" = null;
-
             "${alt_L}+h" = "focus left";
             "${alt_L}+j" = "focus down";
             "${alt_L}+k" = "focus up";
