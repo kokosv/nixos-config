@@ -41,14 +41,14 @@ sudo nixos-rebuild switch --flake .#<hostName>
 
 | Host | Description | Rebuild command |
 |---|---|---|
-| `kt480` | ThinkPad T480 — main machine | `nixreb` |
-| `vps` | Cloud VPS (31.70.105.226) | see below |
+| `kt480` | ThinkPad T480 | `nixreb` |
+| `vps` | Cloud VPS | see below |
 | `homeserver` | Proxmox VM — home services (WIP) | — |
 | `mc-server` | Proxmox VM — Minecraft server (WIP) | — |
 
 ### VPS rebuild
 ```bash
-sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@31.70.105.226
+sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@x.x.x.x
 ```
 Builds locally, copies result to the VPS over SSH. Requires your SSH key to be authorized on the VPS as root.
 
@@ -109,8 +109,10 @@ The host file (`hosts/kt480.nix`) picks exactly which modules to use — no `ena
 
 ```nix
 modules = (with config.nixos; [
-  networking sshServer hardware customization
-  # trackpoint intentionally omitted — not present on kt480
+  networking 
+  sshServer 
+  hardware 
+  customization
 ]) ++ [ ... ]
 ```
 
