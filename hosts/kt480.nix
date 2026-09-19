@@ -103,6 +103,7 @@
               imports = with config.homeManager; [
                 i3Style
                 i3Session
+                xidlehook
                 picom
                 polybar
                 kitty

@@ -21,6 +21,11 @@
               command = "exec --no-startup-id greenclip daemon";
               always = true;
             }
+            {
+              # disable X's DPMS timer — xidlehook handles screen-off instead
+              command = "${pkgs.xorg.xset}/bin/xset -dpms";
+              always = true;
+            }
             #       {
             #         command = " ";
             #         always = true;
