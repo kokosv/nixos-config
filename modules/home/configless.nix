@@ -15,7 +15,6 @@
       libnotify
       coreutils
       yad
-
       qalculate-gtk
       bluetui
       lorien # paint
@@ -26,6 +25,7 @@
       # vimiv-qt # img viewer vim bindings
       claude-code
       suckit # recursive website content download
+      screenkey
     ];
   };
 }
