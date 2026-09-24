@@ -27,17 +27,24 @@
       url = "github:nix-community/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    pyroclear = {
+      url = "github:shreyanth-sureshkrishnaa/pyroclear";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     let
       lib = inputs.nixpkgs.lib;
-      scanDir = root: lib.filter
-        (path: lib.all
-          (c: !(lib.hasPrefix "_" c))
-          (lib.path.subpath.components (lib.path.removePrefix root path)))
-        (lib.filter (lib.hasSuffix ".nix")
-          (lib.filesystem.listFilesRecursive root));
+      scanDir =
+        root:
+        lib.filter (
+          path:
+          lib.all (c: !(lib.hasPrefix "_" c)) (lib.path.subpath.components (lib.path.removePrefix root path))
+        ) (lib.filter (lib.hasSuffix ".nix") (lib.filesystem.listFilesRecursive root));
     in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       imports = (scanDir ./modules) ++ (scanDir ./hosts);

@@ -3,7 +3,7 @@
   "..." = "cd ../..";
 
   r = "ranger";
-  c = "clear";
+  c = "pyroclear";
   nv = "nvim";
 
   ssh = "kitten ssh";

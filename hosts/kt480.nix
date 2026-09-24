@@ -131,6 +131,7 @@
                 lazygit
                 configless
                 ranger
+                pyroclear
                 # clipse
               ];
               home = {

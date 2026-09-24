@@ -7,7 +7,7 @@
       "..." = "cd ../..";
 
       r = "ranger";
-      c = "clear";
+      c = "pyroclear";
 
       ssh = "kitten ssh";
 
