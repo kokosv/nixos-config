@@ -1,10 +1,19 @@
+# Placeholder host for klegion (second laptop).
+# Prefixed with _ so it is excluded from auto-import until ready.
+#
+# TO ACTIVATE:
+#   1. Install NixOS on the machine.
+#   2. Copy hardware-configuration.nix to hosts/_klegion/hardware-configuration.nix
+#   3. Get the host SSH key: cat /etc/ssh/ssh_host_ed25519_key.pub
+#   4. Add it as `klegion` in secrets/secrets.nix and re-encrypt:
+#        nix run github:ryantm/agenix -- -r
+#   5. Rename this file to hosts/klegion.nix (remove the _ prefix).
 { config, inputs, ... }: {
-  flake.nixosConfigurations.kt480 = inputs.nixpkgs.lib.nixosSystem {
+  flake.nixosConfigurations.klegion = inputs.nixpkgs.lib.nixosSystem {
     specialArgs = { inherit inputs; };
     modules =
       (with config.nixos; [
         networking
-        sshServer
         hardware
         customization
         keyboardLayout
@@ -12,22 +21,22 @@
         i3
         pipewire
         upower
-        greenclip
         tailscale
-        moonlight
         xsecurelock
         zsh
         environmentalVariables
         services
         configless
         agenix
+        # greenclip
+        # moonlight
         # trackpoint
         # mpd
       ])
       ++ [
-        ./_kt480/hardware-configuration.nix
+        ./_klegion/hardware-configuration.nix
         {
-          networking.hostName = "kt480";
+          networking.hostName = "klegion";
 
           boot.loader = {
             efi = {
@@ -49,12 +58,10 @@
               "networkmanager"
               "wheel"
               "input"
-              "adbusers"
             ];
-            # Public keys allowed to SSH into kt480 as koko.
+            # Public keys allowed to SSH into klegion as koko.
             # openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAA..." ];
           };
-          users.users.root.extraGroups = [ "wheel" ];
 
           nixpkgs.config.allowUnfree = true;
 
@@ -65,9 +72,7 @@
           };
 
           security.rtkit.enable = true;
-          system.stateVersion = "25.05";
-
-          environment.systemPackages = [ ];
+          system.stateVersion = "26.05";
 
           services.xserver = {
             enable = true;
@@ -97,7 +102,6 @@
 
           # Shared secrets — same encrypted file, each host decrypts with its own key.
           # Both kt480 and klegion must be listed in secrets/secrets.nix for each secret.
-          # Create the file first: nix run github:ryantm/agenix -- -e secrets/ssh-private-key.age
           age.secrets.ssh-private-key = {
             file = ../secrets/ssh-private-key.age;
             owner = "koko";
@@ -126,7 +130,6 @@
                 rofi
                 nvim
                 usrDir
-                gromitMpx
                 flameshot
                 thunderbird
                 gtkTheme
@@ -137,7 +140,6 @@
                 eza
                 fzf
                 fusuma
-                khal
                 dunst
                 direnv
                 fastfetch
@@ -145,15 +147,14 @@
                 configless
                 ranger
                 pyroclear
-                # clipse
               ];
+              # SSH uses the agenix-decrypted key from /run/agenix/
+              programs.ssh.settings."*".IdentityFile = "/run/agenix/ssh-private-key";
               home = {
-                stateVersion = "25.05";
+                stateVersion = "26.05";
                 username = "koko";
                 homeDirectory = "/home/koko";
               };
-              # SSH uses the agenix-decrypted key from /run/agenix/
-              programs.ssh.settings."*".IdentityFile = "/run/agenix/ssh-private-key";
               programs.home-manager.enable = true;
             };
           };

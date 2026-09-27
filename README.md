@@ -8,6 +8,7 @@
 - [Available Hosts](#available-hosts)
 - [Structure](#structure)
 - [How Modules Work](#how-modules-work)
+- [Secrets (agenix)](#secrets-agenix)
 - [Usage](#usage)
 
 ---
@@ -149,6 +150,56 @@ config.homeManager.myApp = { pkgs, ... }: {
   ];
   # ...
 };
+```
+
+---
+
+## Secrets (agenix)
+
+Secrets (SSH keys, passwords, API tokens) are stored as encrypted `.age` files in `secrets/` and committed to the repo. At boot, NixOS decrypts them with the machine's SSH host key and places the result in `/run/agenix/` (tmpfs — never written to disk between reboots).
+
+### Layout
+
+```
+secrets.nix          # access control — which public keys decrypt which secrets
+secrets/
+└── *.age            # encrypted secret files (safe to commit)
+```
+
+### Adding a new secret
+
+1. Declare it in `secrets.nix`:
+   ```nix
+   "secrets/my-secret.age".publicKeys = allHosts;
+   ```
+2. Create the encrypted file (opens `$EDITOR`, save the plaintext, it gets encrypted on exit):
+   ```bash
+   nix run github:ryantm/agenix -- -e secrets/my-secret.age
+   ```
+3. Reference the decrypted path in `hosts/<host>.nix`:
+   ```nix
+   age.secrets.my-secret.file = ../secrets/my-secret.age;
+   # available at runtime as /run/agenix/my-secret
+   ```
+4. `nixreb`
+
+### Adding a new host
+
+1. Get the host's SSH public key: `cat /etc/ssh/ssh_host_ed25519_key.pub`
+2. Add it as a variable in `secrets.nix` and include it in `allHosts` (or per-secret groups)
+3. Re-encrypt all secrets so the new host can decrypt them:
+   ```bash
+   nix run github:ryantm/agenix -- -r
+   ```
+
+### Commands (always run from repo root)
+
+```bash
+cd ~/.nixos-config
+
+nix run github:ryantm/agenix -- -e secrets/ssh-private-key.age   # edit existing secret
+nix run github:ryantm/agenix -- -e secrets/new-secret.age        # create new secret
+nix run github:ryantm/agenix -- -r                                # re-encrypt after adding a host key
 ```
 
 ---

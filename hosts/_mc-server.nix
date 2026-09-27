@@ -13,6 +13,8 @@
           optimise.automatic = true;
         };
         system.stateVersion = "26.05";
+        # Public keys allowed to SSH into mc-server as root.
+        # users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAA..." ];
       }
     ];
   };
