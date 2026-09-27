@@ -95,6 +95,14 @@
 
           systemd.sleep.settings.Sleep.HibernateDelaySec = "10min";
 
+          # Root needs the SSH key too — sudo nixos-rebuild --target-host runs SSH as root,
+          # which ignores koko's ~/.ssh/config. This adds the identity to /etc/ssh/ssh_config
+          # (system-wide fallback), so root picks it up without extra flags.
+          programs.ssh.extraConfig = ''
+            Host *
+              IdentityFile /run/agenix/ssh-private-key
+          '';
+
           # Shared secrets — same encrypted file, each host decrypts with its own key.
           # Both kt480 and klegion must be listed in secrets/secrets.nix for each secret.
           # Create the file first: nix run github:ryantm/agenix -- -e secrets/ssh-private-key.age
