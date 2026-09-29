@@ -1,15 +1,19 @@
 { lib, ... }: {
   options.homeManager.flameshot = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.homeManager.flameshot = { pkgs, ... }: {
+  config.homeManager.flameshot = { pkgs, config, ... }: {
     home.packages = with pkgs; [ flameshot ];
+
+    systemd.user.tmpfiles.rules = [
+      "d %h/pic/scr 0755 - - -"
+    ];
 
     services.flameshot = {
       enable = true;
 
       settings = {
         General = {
-          savePath = "pic/scr/";
+          savePath = "${config.home.homeDirectory}/pic/scr";
           saveAsFileExtension = ".png";
           drawColor = "#ffffff";
           showHelp = false;
