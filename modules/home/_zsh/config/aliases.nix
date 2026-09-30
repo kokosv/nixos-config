@@ -7,6 +7,9 @@
   nv = "nvim";
 
   ssh = "kitten ssh";
+  ssh_vps = "ssh root@31.70.105.226";
+  # ssh_mc = "ssh root@31.70.105.226";
+  # ssh_hm = "ssh root@31.70.105.226";
 
   l = "eza";
   ll = "eza -l";
