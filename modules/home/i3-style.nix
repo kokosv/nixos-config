@@ -1,7 +1,8 @@
 { lib, ... }: {
   options.homeManager.i3Style = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.homeManager.i3Style = { pkgs, lib, ... }:
+  config.homeManager.i3Style =
+    { pkgs, lib, ... }:
     let
       super = "Mod4";
       alt_L = "Mod1";
@@ -19,11 +20,6 @@
             }
             {
               command = "exec --no-startup-id greenclip daemon";
-              always = true;
-            }
-            {
-              # disable X's DPMS timer — xidlehook handles screen-off instead
-              command = "${pkgs.xset}/bin/xset -dpms";
               always = true;
             }
             #       {
@@ -136,27 +132,41 @@
 
             {
               command = "floating enable, resize set 1600 1000, move position center";
-              criteria = { class = "^btop$"; };
+              criteria = {
+                class = "^btop$";
+              };
             }
             {
               command = "floating enable, resize set 800 600, move position center";
-              criteria = { class = "^ikhal$"; };
+              criteria = {
+                class = "^ikhal$";
+              };
             }
             {
               command = "floating enable, resize set 1600 1000, move position center";
-              criteria = { class = "^nmtui$"; };
+              criteria = {
+                class = "^nmtui$";
+              };
             }
             {
               command = "floating enable, resize set 1000 800, move position center";
-              criteria = { class = "^bluetui$"; };
+              criteria = {
+                class = "^bluetui$";
+              };
             }
             {
               command = "floating enable";
-              criteria = { class = "^Yad$"; title = "^yad-calendar$"; };
+              criteria = {
+                class = "^Yad$";
+                title = "^yad-calendar$";
+              };
             }
             {
               command = "floating enable, border none";
-              criteria = { class = "^Yad$"; title = "^System$"; };
+              criteria = {
+                class = "^Yad$";
+                title = "^System$";
+              };
             }
           ];
         };

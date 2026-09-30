@@ -93,7 +93,7 @@
             HandleLidSwitchDocked = "suspend-then-hibernate";
           };
 
-          systemd.sleep.settings.Sleep.HibernateDelaySec = "10min";
+          # systemd.sleep.settings.Sleep.HibernateDelaySec = "10min";
 
           # Root needs the SSH key too — sudo nixos-rebuild --target-host runs SSH as root,
           # which ignores koko's ~/.ssh/config. This adds the identity to /etc/ssh/ssh_config
@@ -124,7 +124,6 @@
               imports = with config.homeManager; [
                 i3Style
                 i3Session
-                xidlehook
                 picom
                 polybar
                 kitty
