@@ -42,14 +42,17 @@ sudo nixos-rebuild switch --flake .#<hostName>
 
 | Host | Description | Rebuild command |
 |---|---|---|
-| `kt480` | ThinkPad T480 | `nixreb` |
+| `kt480` | ThinkPad T480 | `nixreb kt480` |
+| `klegion` | Second laptop (WIP) | `nixreb klegion` |
 | `vps` | Cloud VPS | see below |
-| `homeserver` | Proxmox VM — home services (WIP) | — |
-| `mc-server` | Proxmox VM — Minecraft server (WIP) | — |
+| `hm` | Proxmox VM — home services (WIP) | `nixreb hm` |
+| `mc` | Proxmox VM — Minecraft server (WIP) | `nixreb mc` |
 
-### VPS rebuild
+`nixreb` is a zsh function defined in `modules/home/_zsh/config/functions.nix`.
+
+### Remote host rebuild example
 ```bash
-sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@x.x.x.x
+sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@31.70.105.226
 ```
 Builds locally, copies result to the VPS over SSH. Requires your SSH key to be authorized on the VPS as root.
 
@@ -181,7 +184,10 @@ secrets/
    age.secrets.my-secret.file = ../secrets/my-secret.age;
    # available at runtime as /run/agenix/my-secret
    ```
-4. `nixreb`
+4. Rebuild the affected host:
+   ```bash
+   nixreb <kt480|klegion|vps|mc|hm>
+   ```
 
 ### Adding a new host
 
@@ -205,14 +211,6 @@ nix run github:ryantm/agenix -- -r                                # re-encrypt a
 ---
 
 ## Usage
-
-### kt480 (local aliases defined in zsh config)
-
-```bash
-nixreb    # sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch   (rebuild + activate)
-nixbld    # sudo nixos-rebuild build --flake ~/.nixos-config#kt480    (build only, no switch)
-nixtst    # sudo nixos-rebuild test --flake ~/.nixos-config#kt480     (activate without making permanent)
-```
 
 ### Other useful commands
 
