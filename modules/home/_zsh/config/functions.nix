@@ -36,6 +36,30 @@
     sudo nix store optimise
   }
 
+  # Rebuild a NixOS host by name
+  nixreb() {
+    case "$1" in
+      kt480)
+        sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch
+        ;;
+      klegion)
+        echo "klegion: not configured yet"
+        ;;
+      vps)
+        sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@31.70.105.226
+        ;;
+      mc)
+        echo "mc: not configured yet"
+        ;;
+      hm)
+        echo "hm: not configured yet"
+        ;;
+      *)
+        echo "Usage: nixreb <kt480|klegion|vps|mc|hm>"
+        ;;
+    esac
+  }
+
   # FZF hook for direnv
   eval "$(direnv hook zsh)"
 ''

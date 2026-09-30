@@ -127,7 +127,6 @@
                 picom
                 polybar
                 kitty
-                shell
                 zsh
                 firefox
                 rofi

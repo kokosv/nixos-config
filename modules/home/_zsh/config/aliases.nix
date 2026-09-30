@@ -17,10 +17,6 @@
   ltl = "eza -T -l -L ";
   ltla = "eza -T -l -a -L ";
 
-  nixreb = "sudo nixos-rebuild --flake ~/.nixos-config#kt480 switch";
-  nixbld = "sudo nixos-rebuild build --flake ~/.nixos-config#kt480";
-  nixtst = "sudo nixos-rebuild test --flake ~/.nixos-config#kt480";
-
   kys = "sudo shutdown -h now";
 
   hdmiup = "xrandr --output HDMI-2 --mode 1920x1080 --above eDP-1";
