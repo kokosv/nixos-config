@@ -22,6 +22,10 @@
               command = "exec --no-startup-id greenclip daemon";
               always = true;
             }
+            {
+              command = "${pkgs.xset}/bin/xset s off -dpms";
+              always = true;
+            }
             #       {
             #         command = " ";
             #         always = true;
