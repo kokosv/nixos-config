@@ -7,6 +7,8 @@
       git
       ranger
       file
+      btop
+      fail2ban
     ];
   };
 }

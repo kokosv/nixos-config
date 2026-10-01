@@ -4,9 +4,17 @@
     specialArgs = { inherit inputs; };
     modules =
       (with config.vps; [
+        agenix
         ssh
         basePackages
         cloudVmBoot
+        networking
+        headscale
+        headplane
+        acme
+        nginx
+        geoip
+        fail2ban
       ])
       ++ [
         inputs.disko.nixosModules.disko
