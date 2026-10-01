@@ -17,8 +17,139 @@
         };
 
         userContent = ''
-          .logo-and-wordmark-wrapper {
-            display: none !important;
+          /* remove Firefox logo in home page */
+          .logo-and-wordmark {
+          display: none !important;
+          }
+
+          /* ==========================================================================
+             userContent.css - square Firefox's OWN internal pages (Settings)
+
+             The Settings page (about:preferences) is not a chrome:// window, so
+             userChrome.css cannot style it; it needs userContent.css.
+
+             The guard below limits every rule to the listed about: pages, so normal
+             websites are NOT affected. Delete any line from the list
+             if you don't want that page squared (for example about:newtab / about:home).
+             ========================================================================== */
+
+          @-moz-document
+            url-prefix("about:preferences"),
+            url-prefix("about:settings"),
+            url-prefix("about:addons"),
+            url-prefix("about:config"),
+            url-prefix("about:logins"),
+            url-prefix("about:downloads"),
+            url-prefix("about:firefoxview"),
+            url-prefix("about:privatebrowsing"),
+            url-prefix("about:newtab"),
+            url-prefix("about:home") {
+
+            :root,
+            * {
+              --border-radius-xsmall: 0px !important;
+              --border-radius-small: 0px !important;
+              --border-radius-medium: 0px !important;
+              --border-radius-large: 0px !important;
+              --border-radius-xlarge: 0px !important;
+              --border-radius-circle: 0px !important;
+              --border-radius-pill: 0px !important;
+              --button-border-radius: 0px !important;
+              --input-border-radius: 0px !important;
+              --card-border-radius: 0px !important;
+            }
+
+            *,
+            *::before,
+            *::after {
+              border-radius: 0 !important;
+            }
+
+            *::part(button),
+            *::part(input),
+            *::part(container),
+            *::part(content),
+            *::part(card),
+            *::part(label) {
+              border-radius: 0 !important;
+            }
+          }
+        '';
+
+        userChrome = ''
+          /* ==========================================================================
+             userChrome.css - square every corner of the Firefox GUI
+
+             IMPORTANT: no default @namespace line here on purpose. Firefox's main
+             window root is an HTML element, so a default XUL namespace would make
+             ":root" and "*" match nothing in the main window.
+
+             The @-moz-document guard keeps all of this limited to Firefox's own
+             windows (chrome://), so websites are never affected.
+             ========================================================================== */
+
+          @-moz-document url-prefix("chrome://") {
+
+            /* ------------------------------------------------------------------------
+               1. Radius variables, set on EVERY element.
+                  Firefox sets some of these directly on elements such as #urlbar,
+                  so setting them only on :root is not enough. Variables also pass
+                  into shadow DOM (sidebar buttons, menus, panels).
+               ------------------------------------------------------------------------ */
+            :root,
+            * {
+              --tab-border-radius: 0px !important;
+              --tab-group-border-radius: 0px !important;
+              --toolbarbutton-border-radius: 0px !important;
+              --toolbarbutton-inner-border-radius: 0px !important;
+              --urlbar-border-radius: 0px !important;
+              --urlbar-margin-inline: 0px !important;
+              --toolbar-field-border-radius: 0px !important;
+              --arrowpanel-border-radius: 0px !important;
+              --panel-border-radius: 0px !important;
+              --menuitem-border-radius: 0px !important;
+              --button-border-radius: 0px !important;
+              --input-border-radius: 0px !important;
+              --card-border-radius: 0px !important;
+              --border-radius-xsmall: 0px !important;
+              --border-radius-small: 0px !important;
+              --border-radius-medium: 0px !important;
+              --border-radius-large: 0px !important;
+              --border-radius-xlarge: 0px !important;
+              --border-radius-circle: 0px !important;
+              --border-radius-pill: 0px !important;
+              --border-radius-toolbar-button: 0px !important;
+            }
+
+            /* ------------------------------------------------------------------------
+               2. Direct rule on every element and pseudo-element.
+                  Covers: tabs, vertical tabs, sidebar, address bar, search bar,
+                  toolbar buttons, burger menu, bookmarks bar, tab group popups,
+                  context menus, dialogs, find bar, downloads panel, etc.
+               ------------------------------------------------------------------------ */
+            *,
+            *::before,
+            *::after {
+              border-radius: 0 !important;
+            }
+
+            /* ------------------------------------------------------------------------
+               3. Shadow-DOM "parts": the visible box of popups and menus
+                  (hover popups, burger menu, bookmark folders, tab group previews).
+               ------------------------------------------------------------------------ */
+            *::part(content),
+            *::part(arrowscrollbox),
+            *::part(scrollbox),
+            *::part(scrollbutton-up),
+            *::part(scrollbutton-down),
+            *::part(button),
+            *::part(input),
+            *::part(container),
+            panel::part(content),
+            menupopup::part(content),
+            menupopup::part(arrowscrollbox) {
+              border-radius: 0 !important;
+            }
           }
         '';
 
@@ -34,6 +165,9 @@
 
           "sidebar.revamp" = true;
           "sidebar.verticalTabs" = true;
+
+          # new firefox design
+          "browser.nova.enabled" = false;
 
           "browser.tabs.groups.hoverPreview.enabled" = false;
           "browser.tabs.hoverPreview.enabled" = false;
