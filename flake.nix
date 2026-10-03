@@ -40,6 +40,8 @@
       url = "github:juanfont/headscale/v0.29.4";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    areofyl-fetch.url = "github:areofyl/fetch";
   };
 
   outputs =

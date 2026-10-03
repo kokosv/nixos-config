@@ -147,6 +147,7 @@
                 dunst
                 direnv
                 fastfetch
+                fetch
                 lazygit
                 configless
                 ranger

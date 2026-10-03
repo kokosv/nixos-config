@@ -21,23 +21,83 @@
         };
         modules = [
           "break"
-          { type = "host"; key = "{icon} PC"; keyColor = "green"; }
-          { type = "cpu"; key = "├"; keyColor = "green"; }
-          { type = "gpu"; key = "├󰍛"; keyColor = "green"; }
-          { type = "memory"; key = "├󰍛"; keyColor = "green"; }
-          { type = "disk"; key = "└"; keyColor = "green"; }
+          {
+            type = "host";
+            key = "{icon} PC";
+            keyColor = "green";
+          }
+          {
+            type = "cpu";
+            key = "├󰻟 CPU";
+            keyColor = "green";
+          }
+          {
+            type = "gpu";
+            key = "├󰾲 GPU";
+            keyColor = "green";
+          }
+          {
+            type = "memory";
+            key = "├󰍛 RAM";
+            keyColor = "green";
+          }
+          {
+            type = "disk";
+            key = "└󰋊 Disk";
+            keyColor = "green";
+          }
           "break"
-          { type = "os"; key = "{icon} OS"; keyColor = "yellow"; }
-          { type = "kernel"; key = "├"; keyColor = "yellow"; }
-          { type = "bios"; key = "├"; keyColor = "yellow"; }
-          { type = "packages"; key = "├󰏖"; keyColor = "yellow"; }
-          { type = "shell"; key = "└"; keyColor = "yellow"; }
+          {
+            type = "os";
+            key = "{icon} OS";
+            keyColor = "yellow";
+          }
+          {
+            type = "kernel";
+            key = "├󰣇 Kernel";
+            keyColor = "yellow";
+          }
+          {
+            type = "bios";
+            key = "├󰾻 BIOS";
+            keyColor = "yellow";
+          }
+          {
+            type = "packages";
+            key = "├󰏖 Packages";
+            keyColor = "yellow";
+          }
+          {
+            type = "shell";
+            key = "└󰆍 Shell";
+            keyColor = "yellow";
+          }
           "break"
-          { type = "de"; key = " DE"; keyColor = "blue"; }
-          { type = "lm"; key = "├"; keyColor = "blue"; }
-          { type = "wm"; key = "├"; keyColor = "blue"; }
-          { type = "wmtheme"; key = "├󰉼"; keyColor = "blue"; }
-          { type = "terminal"; key = "└"; keyColor = "blue"; }
+          {
+            type = "de";
+            key = "󰍹 DE";
+            keyColor = "blue";
+          }
+          {
+            type = "lm";
+            key = "├󰷖 LM";
+            keyColor = "blue";
+          }
+          {
+            type = "wm";
+            key = "├󰖲 WM";
+            keyColor = "blue";
+          }
+          {
+            type = "wmtheme";
+            key = "├󰉼 WM Theme";
+            keyColor = "blue";
+          }
+          {
+            type = "terminal";
+            key = "└󰐥 Terminal";
+            keyColor = "blue";
+          }
           "break"
           {
             type = "command";
@@ -45,8 +105,16 @@
             keyColor = "magenta";
             text = "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days";
           }
-          { type = "uptime"; key = "├󰅐 Uptime "; keyColor = "magenta"; }
-          { type = "datetime"; key = "└󰃰 DateTime "; keyColor = "magenta"; }
+          {
+            type = "uptime";
+            key = "├󰅐 Uptime ";
+            keyColor = "magenta";
+          }
+          {
+            type = "datetime";
+            key = "└󰃰 DateTime ";
+            keyColor = "magenta";
+          }
         ];
       };
     };
