@@ -107,7 +107,7 @@
           # Both kt480 and klegion must be listed in secrets/secrets.nix for each secret.
           # Create the file first: nix run github:ryantm/agenix -- -e secrets/ssh-private-key.age
           age.secrets.ssh-private-key = {
-            file = ../secrets/ssh-private-key.age;
+            file = ../../secrets/ssh-private-key.age;
             owner = "koko";
             group = "users";
             mode = "0400";
