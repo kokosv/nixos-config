@@ -10,10 +10,11 @@
         cloudVmBoot
         networking
         headscale
-        headplane
         acme
         nginx
         geoip
+        anubis
+        gatus
         fail2ban
       ])
       ++ [
