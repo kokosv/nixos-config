@@ -1,9 +1,10 @@
 { lib, ... }: {
   options.vps.headscale = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.vps.headscale = {
+  config.vps.headscale = { pkgs, inputs, ... }: {
     services.headscale = {
       enable = true;
+      package = inputs.headscale.packages.${pkgs.system}.headscale;
       address = "0.0.0.0";
       port = 8080;
       settings = {

@@ -21,15 +21,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # only needed for the very first `nixos-anywhere` install of a new
-    # server, not for subsequent `nixos-rebuild switch --target-host` runs
     nixos-anywhere = {
       url = "github:nix-community/nixos-anywhere";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    pyroclear = {
-      url = "github:shreyanth-sureshkrishnaa/pyroclear";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -38,6 +31,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    pyroclear = {
+      url = "github:shreyanth-sureshkrishnaa/pyroclear";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    headscale = {
+      url = "github:juanfont/headscale/v0.29.4";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
