@@ -8,6 +8,15 @@
       # configPath = ".mozilla/firefox"; # legacy
       configPath = "${config.xdg.configHome}/mozilla/firefox";
 
+      # Registers the OpenSC PKCS#11 module (smart card middleware, see
+      # modules/system/smartcard.nix) so the B-Trust card/token shows up under
+      # about:preferences#privacy -> Security Devices without a manual "Load" step.
+      policies = {
+        SecurityDevices = {
+          "OpenSC PKCS#11" = "${pkgs.opensc}/lib/opensc-pkcs11.so";
+        };
+      };
+
       profiles.default = {
 
         search = {

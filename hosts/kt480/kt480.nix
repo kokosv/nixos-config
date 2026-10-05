@@ -13,6 +13,7 @@
         pipewire
         upower
         greenclip
+        smartcard
         tailscale
         moonlight
         xsecurelock
