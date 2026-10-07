@@ -19,7 +19,7 @@
       ])
       ++ [
         inputs.disko.nixosModules.disko
-        ./_vps/disk-config.nix
+        ./_vps/disko.nix
         {
           networking.hostName = "vps";
 
