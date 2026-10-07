@@ -103,7 +103,7 @@
             "XF86Tools" = "exec --no-startup-id rofi-systemd"; # F9 (Gear)
             "XF86Bluetooth" = "exec --no-startup-id rofi-bluetooth"; # F10 (Bluetooth)
             # "XF86Keyboard" = "exec --no-startup-id polybar-msg cmd toggle"; # F11 (Keyboard)
-            "XF86Favorites" = "exec --no-startup-id rofi -show p -modi p:rofi-power-menu --symbols --text"; # F12 (Star)
+            "XF86Favorites" = "exec --no-startup-id rofi -show p -modi p:\"rofi-power-menu --choices=lockscreen/logout/suspend/reboot/shutdown\" --symbols --text"; # F12 (Star)
 
             # screenshot
             "Print" = "exec flameshot gui";

@@ -27,6 +27,8 @@
       ])
       ++ [
         ./_kt480/hardware-configuration.nix
+        ./_kt480/disko.nix
+        inputs.disko.nixosModules.disko
         {
           networking.hostName = "kt480";
 
@@ -89,12 +91,12 @@
           services.displayManager.defaultSession = "none+i3";
 
           services.logind.settings.Login = {
-            HandleLidSwitch = "suspend-then-hibernate";
-            HandleLidSwitchExternalPower = "suspend-then-hibernate";
-            HandleLidSwitchDocked = "suspend-then-hibernate";
+            HandleLidSwitch = "suspend";
+            HandleLidSwitchExternalPower = "suspend";
+            HandleLidSwitchDocked = "suspend";
           };
 
-          # systemd.sleep.settings.Sleep.HibernateDelaySec = "10min";
+          zramSwap.enable = true;
 
           # Root needs the SSH key too — sudo nixos-rebuild --target-host runs SSH as root,
           # which ignores koko's ~/.ssh/config. This adds the identity to /etc/ssh/ssh_config

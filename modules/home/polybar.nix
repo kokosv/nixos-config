@@ -102,7 +102,7 @@
             click-left = "${pkgs.writeShellScript "power-popup" ''
               #!/run/current-system/sw/bin/bash
 
-              choice=$(printf "Shutdown\nReboot\nSuspend\nHibernate\nLogout\nLock" | \
+              choice=$(printf "Shutdown\nReboot\nSuspend\nLogout\nLock" | \
                 ${pkgs.yad}/bin/yad --list \
                   --width=120 \
                   --height=190 \
@@ -117,14 +117,13 @@
                   --title="powermenu" \
                   --column=""\
                   --print-column=1 2>/dev/null | \
-                ${pkgs.gnugrep}/bin/grep -E "Shutdown|Reboot|Suspend|Hibernate|Logout|Lock" | \
+                ${pkgs.gnugrep}/bin/grep -E "Shutdown|Reboot|Suspend|Logout|Lock" | \
                 ${pkgs.coreutils}/bin/cut -d'|' -f1)
 
               case "$choice" in
                 "Shutdown") ${pkgs.systemd}/bin/poweroff ;;
                 "Reboot") ${pkgs.systemd}/bin/reboot ;;
                 "Suspend") ${pkgs.systemd}/bin/systemctl suspend ;;
-                "Hibernate") ${pkgs.systemd}/bin/systemctl hibernate ;;
                 "Logout") i3-msg exit ;;
                 "Lock") ${pkgs.xsecurelock}/bin/xsecurelock ;;
               esac
