@@ -106,8 +106,8 @@
               IdentityFile /run/agenix/ssh-private-key
           '';
 
-          # Shared secrets — same encrypted file, each host decrypts with its own key.
-          # Both kt480 and klegion must be listed in secrets/secrets.nix for each secret.
+          # Shared secret — same encrypted file, each recipient decrypts with its own key.
+          # Recipients are declared in agenix-rules.nix (currently kt480, vps, koko, recovery).
           # Create the file first: nix run github:ryantm/agenix -- -e secrets/ssh-private-key.age
           age.secrets.ssh-private-key = {
             file = ../../secrets/ssh-private-key.age;
