@@ -24,7 +24,7 @@
           networking.hostName = "vps";
 
           users.users.root.openssh.authorizedKeys.keys = [
-            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFKL/Ju54BCsGZfK5bCpeWl+Zfqu3RK6TfjcSUhKkQiY kaloyansv@gmail.com"
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINB4MjILO3RVWMZ7M4PF+tiWcnqSEoNdBMe21uTjUXxS koko@kt480"
           ];
 
           nixpkgs.config.allowUnfree = true;
