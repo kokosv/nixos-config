@@ -76,7 +76,7 @@
             enable = true;
             autorun = true;
             displayManager.startx.enable = true;
-            desktopManager.wallpaper.mode = "center";
+            desktopManager.wallpaper.mode = "fill";
           };
 
           services.libinput = {

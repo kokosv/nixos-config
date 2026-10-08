@@ -1,7 +1,8 @@
 { lib, ... }: {
   options.homeManager.polybar = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.homeManager.polybar = { pkgs, ... }:
+  config.homeManager.polybar =
+    { pkgs, ... }:
     let
       color = "#9b9b9b";
     in
@@ -32,7 +33,8 @@
 
             border-color = color;
 
-            background = "#00000000";
+            # opacity is first 2 chars 00-ff, then colour 000000 - black
+            background = "#ff000000";
 
             # space between bar and modules
             padding-left = 0;
