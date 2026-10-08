@@ -26,12 +26,17 @@ let
   # ── user keys (optional, for editing secrets without root) ───────────────────
   koko = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINB4MjILO3RVWMZ7M4PF+tiWcnqSEoNdBMe21uTjUXxS koko@kt480";
 
+  # ── recovery key — a standalone age identity, NOT tied to any machine.
+  #    Private key lives only in the password manager, never on any host's
+  #    disk. Exists so a lost/wiped machine can never fully lock us out again.
+  recovery = "age1l30csms7ets0tp8n4c35kz4qkpp7kz23h8v8ejkjs3sspceafcds772l05";
+
   # ── groups ───────────────────────────────────────────────────────────────────
   allHosts = [
     kt480
     vps # klegion
   ];
-  allKeys = allHosts ++ [ koko ];
+  allKeys = allHosts ++ [ koko recovery ];
 in
 {
   # ── shared secrets ───────────────────────────────────────────────────────────
@@ -39,8 +44,8 @@ in
   "secrets/ssh-private-key.age".publicKeys = allKeys;
 
   # ── vps secrets ──────────────────────────────────────────────────────────────
-  "secrets/desec-token.age".publicKeys = [ vps koko ];
-  "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko ];
+  "secrets/desec-token.age".publicKeys = [ vps koko recovery ];
+  "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko recovery ];
 
   # ── host-specific secrets (examples) ─────────────────────────────────────────
   # "secrets/kt480-wifi-password.age".publicKeys = [ kt480 koko ];
