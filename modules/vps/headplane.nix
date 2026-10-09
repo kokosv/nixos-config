@@ -20,7 +20,7 @@
     };
 
     services.nginx.virtualHosts."headplane.vafla.eu" = {
-      listenAddresses = [ "<vps-tailscale-ip>" ];
+      listenAddresses = [ "100.64.0.1" ];
       forceSSL = true;
       useACMEHost = "vafla.eu";
       locations."/" = {
