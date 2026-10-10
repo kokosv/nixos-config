@@ -1,6 +1,7 @@
 # NUT setup on Proxmox baremetal (Debian)
 
 UPS model: **EG-UPS-033** (USB HID UPS)
+USB ID: `0001:0000` (Fry's Electronics OEM — generic/placeholder VID:PID)
 USB plugged directly into the Proxmox host — no VM passthrough.
 
 ## BIOS: required pre-requisite
@@ -25,10 +26,41 @@ Proxmox GUI → VM → Options → **Start at boot = Yes**
 
 ---
 
+## Device behavior notes
+
+This device is **event-driven only**:
+- Interrupt IN endpoint returns I/O error (STALL) under normal conditions (AC OK, battery fine).
+- Only sends interrupt data when status changes: AC loss, battery low, etc.
+- HID Get_Report returns empty for all reports under normal conditions.
+- All HID Get_Feature and Set_Feature return empty/STALL under normal conditions.
+
+Driver: `usbhid-ups` with `subdriver = explore` is the correct choice. The EXPLORE HID
+subdriver finds and opens the device but shows **"Data stale"** under normal conditions
+because the interrupt endpoint stalls when there is nothing to report. This is expected.
+
+The shutdown path (ONBATT detection) should still work — when AC fails the device sends
+an interrupt report. **Confirm with a physical test** (brief AC unplug) before relying on it.
+
+---
+
 ## Install
 
 ```bash
 apt install nut
+```
+
+## /etc/udev/rules.d/99-nut-ups.rules
+
+The kernel's `usbhid` driver auto-claims this device. NUT needs to claim it via libusb.
+The udev rule unbinds `usbhid` immediately after it binds, leaving the interface free for NUT.
+
+```
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0001", ATTRS{idProduct}=="0000", MODE="0660", GROUP="nut"
+ACTION=="add", SUBSYSTEM=="usb_interface", ATTRS{idVendor}=="0001", ATTRS{idProduct}=="0000", RUN+="/bin/sh -c 'echo -n %k > /sys/bus/usb/drivers/usbhid/unbind 2>/dev/null'"
+```
+
+```bash
+udevadm control --reload-rules
 ```
 
 ## /etc/nut/nut.conf
@@ -43,6 +75,9 @@ MODE=netserver
 [ups]
   driver = usbhid-ups
   port = auto
+  vendorid = 0001
+  productid = 0000
+  subdriver = explore
   desc = "EG-UPS-033"
 ```
 
@@ -82,6 +117,9 @@ iptables -A INPUT -p tcp --dport 3493 -j DROP
 Shutdown is triggered via `upssched` with a 60-second delay (handles brief power blips
 without causing unnecessary shutdown/reboot cycles — leaves ~9 min of battery for shutdown).
 
+`DEADTIME 0` prevents upsmon from treating the persistent "Data stale" as a lost UPS
+and initiating a spurious shutdown under normal conditions.
+
 ```
 MONITOR ups@localhost 1 admin <admin-password> master
 
@@ -91,7 +129,7 @@ NOTIFYCMD /usr/sbin/upssched
 POLLFREQ 5
 POLLFREQALERT 5
 HOSTSYNC 15
-DEADTIME 15
+DEADTIME 0
 
 NOTIFYMSG ONLINE  "UPS %s on line power"
 NOTIFYMSG ONBATT  "UPS %s on battery"
@@ -128,12 +166,26 @@ See `notes/ups/shutdown.sh` — copy or symlink to `/etc/nut/upssched-cmd` and `
 ## Enable and start
 
 ```bash
+udevadm control --reload-rules
 chmod +x /etc/nut/upssched-cmd
 systemctl enable nut-server nut-monitor
 systemctl start  nut-server nut-monitor
 
-# Verify UPS is detected
+# Driver will show "Data stale" under normal conditions — this is expected for this device.
+# Verify the driver is running:
 upsc ups@localhost
+```
+
+---
+
+## Physical test (recommended before relying on shutdown)
+
+With NUT running, briefly unplug the UPS from mains AC (not the USB), then replug.
+Watch `journalctl -f` for ONBATT notification. If caught, the shutdown path is confirmed.
+
+```bash
+journalctl -f -t nut-monitor -t nut-driver
+# (unplug UPS AC cord for 3–5 seconds, replug)
 ```
 
 ---
@@ -141,7 +193,7 @@ upsc ups@localhost
 ## Shutdown flow (full sequence)
 
 1. AC power fails → UPS switches to battery
-2. NUT detects ONBATT → `upssched` starts 60-second timer
+2. NUT detects ONBATT via interrupt event → `upssched` starts 60-second timer
 3. If AC restored within 60s → timer cancelled → no shutdown
 4. After 60s on battery → `upssched-cmd onbatt` → `shutdown -h now`
 5. systemd initiates shutdown → `pve-guests.service` sends ACPI shutdown to all VMs

@@ -414,7 +414,6 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 |---|---|---|
 | `baremetalvm.vafla.eu` | Proxmox baremetal tailscale IP | SSH to Proxmox host — no deSEC record |
 | `hsvm.vafla.eu` | home VM tailscale IP | SSH to home VM — no deSEC record |
-| `mcvm.vafla.eu` | MC VM tailscale IP | SSH to MC VM — no deSEC record |
 
 ---
 
@@ -442,7 +441,7 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [x] `modules/vps/anubis.nix` — Anubis in front of Gatus; nginx group fix; geo-blocking
 - [ ] `modules/vps/headplane.nix` — deferred to Stage 5; needs home VM up for Authentik
       (behind Anubis + Authentik + fail2ban, tailnet-only, `listenAddresses`)
-- [ ] `modules/vps/mc-proxy.nix` — TCP stream proxy for Minecraft :25565; deferred to Stage 5
+- [ ] `modules/vps/mc-proxy.nix` — TCP stream proxy for Minecraft :25565 → home VM; deferred to Stage 5
 
 ### Stage 3 — first deploy and verify ✓
 
@@ -451,7 +450,7 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [x] Confirm wildcard cert issued
 - [x] Create Headscale user: `headscale users create koko`
 - [x] Join VPS to its own tailnet
-- [ ] Note VPS tailscale IP — fill into `mc-proxy.nix` and tier-1 `listenAddresses`
+- [ ] Note VPS tailscale IP — fill into tier-1 `listenAddresses` (already: `100.64.0.1`)
 
 ### Stage 4 — enroll devices (in progress)
 
@@ -474,7 +473,7 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [ ] Set up Technitium on home VM
 - [ ] Fill in home VM tailscale IP in `headscale.nix` `nameservers.global`
 - [ ] Fill in VPS tailscale IP in tier-1 nginx `listenAddresses`
-- [ ] Fill in MC VM tailscale IP in `mc-proxy.nix`; wire into vps.nix
+- [ ] Fill in home VM tailscale IP in `mc-proxy.nix` (MC server runs on home VM); wire into vps.nix
 - [ ] Wire up `modules/vps/headplane.nix` — tailnet-only (`headplane.vafla.eu`),
       behind Anubis + Authentik + fail2ban; `listenAddresses = [ "100.64.0.1" ]`
 - [ ] Add Anubis instances per service (`modules/vps/anubis.nix`)
@@ -484,8 +483,11 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [ ] Add deSEC A records for all tier-0b and tier-0c subdomains → VPS public IP
 - [ ] Add Technitium DNS records for all tier-1 subdomains → VPS tailscale IP
 
-### Stage 6 — Proxmox host + UPS (after home VM is up)
+### Stage 6 — Proxmox host + UPS + ZFS storage (after home VM is up)
 
+#### Proxmox host basics
+
+- [ ] **BIOS**: set AC Power Loss → **Last State** (not Always On) — required for UPS auto-boot
 - [ ] Install Tailscale on Proxmox Debian host (`apt install tailscale`);
       register with Headscale
 - [ ] Add Technitium records:
@@ -497,13 +499,58 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
       tailnet SSH: `ssh root@baremetalvm.vafla.eu`;
       local SSH: `ssh root@<lan-ip>` (fallback if tailnet is down);
       no password auth; add authorized keys
-- [ ] Install NUT on Proxmox baremetal (`apt install nut`); configure `/etc/nut/` for EG-UPS-033;
-      listen on `0.0.0.0:3493` (firewall-restricted to home VM bridge IP only);
-      `SHUTDOWNCMD = "shutdown -h now"` — Proxmox `pve-guests.service` handles graceful VM stop
+- [ ] Set each VM: Options → **Start at boot = Yes** — VMs auto-start after host boots
+      (this makes the UPS power-restore cycle fully automatic)
+
+#### UPS + NUT
+
+- [ ] Install NUT (`apt install nut`); deploy configs from `notes/ups/setup.md`:
+      copy `/etc/nut/{nut.conf,ups.conf,upsd.conf,upsd.users,upsmon.conf,upssched.conf}`;
+      copy `notes/ups/shutdown.sh` → `/etc/nut/upssched-cmd`; `chmod +x /etc/nut/upssched-cmd`;
+      `systemctl enable --now nut-server nut-monitor`; verify with `upsc ups@localhost`
 - [ ] Add PeaNUT OCI container to home VM (`virtualisation.oci-containers`);
-      point `NUT_HOST` to Proxmox bridge IP (e.g. `10.0.0.1`) or Proxmox tailscale IP
+      point `NUT_HOST` to Proxmox bridge IP (e.g. `10.0.0.1`) — fill in at deploy time
 - [ ] Configure Homarr PeaNUT widget → `http://localhost:8082`
-- [ ] See `notes/ups/` for baremetal NUT config and shutdown script
+
+#### ZFS datasets + storage
+
+- [ ] Add `kashon01` pool as Proxmox storage backend (pool already exists — just register it):
+      Datacenter → Storage → Add → ZFS → pool: `kashon01`, content: Disk image + ISO image
+- [ ] Create the four datasets:
+      ```
+      zfs create kashon01/d01-archiv
+      zfs create kashon01/d02-lichni
+      zfs create kashon01/d03-vm-backup
+      zfs create kashon01/d04-mc
+      ```
+- [ ] Add `kashon01/d03-vm-backup` as Proxmox Backup storage:
+      Datacenter → Storage → Add → Directory → path: `/kashon01/d03-vm-backup`, content: Backup;
+      set retention (keep last 3–5 per VM) in storage Edit → Prune options — **no sanoid on this dataset**
+- [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §14 for full config);
+      `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically
+- [ ] Set up daily cron to copy configs to `d01-archiv` (add to `crontab -e` on Proxmox host):
+      ```
+      0 3 * * * rsync -a /etc/pve/ /kashon01/d01-archiv/pve/
+      0 3 * * * rsync -a /etc/nut/ /kashon01/d01-archiv/nut/
+      ```
+- [ ] Create Directory Mappings (Datacenter → Resource Mappings → Directory):
+      ```
+      d01-archiv  →  /kashon01/d01-archiv
+      d02-lichni  →  /kashon01/d02-lichni
+      d04-mc      →  /kashon01/d04-mc
+      ```
+- [ ] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS):
+      ```
+      mapping: d01-archiv,  tag: d01-archiv
+      mapping: d02-lichni,  tag: d02-lichni
+      mapping: d04-mc,      tag: d04-mc
+      ```
+- [ ] Declare mounts in **home VM** NixOS config:
+      ```nix
+      fileSystems."/d01-archiv" = { device = "d01-archiv"; fsType = "virtiofs"; };
+      fileSystems."/d02-lichni" = { device = "d02-lichni"; fsType = "virtiofs"; };
+      fileSystems."/d04-mc"     = { device = "d04-mc";     fsType = "virtiofs"; };
+      ```
 
 ---
 
@@ -587,6 +634,60 @@ The only way to see UPS data is through the Homarr dashboard.
 
 In Homarr: add PeaNUT widget → URL `http://localhost:8082`.
 
+### ZFS datasets + sanoid snapshot plan
+
+#### Datasets on `kashon01` (RAID-1 mirror)
+
+| Dataset | Mounted in | Purpose |
+|---|---|---|
+| `kashon01/d01-archiv` | home VM `/d01-archiv` (VirtioFS) | Archival data + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron) |
+| `kashon01/d02-lichni` | home VM `/d02-lichni` (VirtioFS) | Personal files — subdir structure TBD |
+| `kashon01/d03-vm-backup` | Proxmox backup storage | VM backups (`dump/`) — retention managed by Proxmox, no sanoid snapshots |
+| `kashon01/d04-mc` | home VM `/d04-mc` (VirtioFS) | Minecraft server data — subdir structure TBD |
+
+#### Sanoid snapshot retention (`/etc/sanoid/sanoid.conf` on Proxmox baremetal)
+
+Each number = how many snapshots of that type to keep. Sanoid takes and prunes automatically via systemd timer.
+
+```ini
+[kashon01/d01-archiv]
+  use_template = archiv
+
+[kashon01/d02-lichni]
+  use_template = lichni
+
+[kashon01/d04-mc]
+  use_template = mc
+
+# d03-vm-backup: NO sanoid — Proxmox manages VZDump retention directly
+
+[template_archiv]
+  daily   = 0
+  weekly  = 8    # 8 weeks of history — archival data changes slowly
+  monthly = 0
+  autosnap = yes
+  autoprune = yes
+
+[template_lichni]
+  daily   = 7    # last 7 days
+  weekly  = 4    # last 4 weeks
+  monthly = 3    # last 3 months
+  autosnap = yes
+  autoprune = yes
+
+[template_mc]
+  daily   = 7    # last 7 days
+  weekly  = 4    # last 4 weeks
+  monthly = 0
+  autosnap = yes
+  autoprune = yes
+```
+
+> **`d03-vm-backup` note**: No sanoid snapshots on this dataset. Proxmox manages VZDump
+> file retention directly (set keep last 3–5 per VM in Datacenter → Storage → vm-backup → Edit).
+> ZFS snapshots on a backup dataset would silently hold deleted VZDump files alive,
+> consuming large amounts of space — avoid entirely.
+
 #### Summary
 
 | Component | Where | How reached |
@@ -595,7 +696,6 @@ In Homarr: add PeaNUT widget → URL `http://localhost:8082`.
 | Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`), Authentik |
 | SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`baremetalvm.vafla.eu`) + local LAN IP |
 | SSH — home VM | home VM | tailnet only (`hsvm.vafla.eu`) |
-| SSH — MC VM | MC VM | tailnet only (`mcvm.vafla.eu`) |
 | UPS USB | Direct to Proxmox baremetal | local USB on host |
 | NUT server | Proxmox baremetal (apt) | bridge subnet (port 3493) |
 | PeaNUT | home VM (OCI container) | localhost only — Homarr widget |
