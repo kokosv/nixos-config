@@ -688,6 +688,35 @@ Each number = how many snapshots of that type to keep. Sanoid takes and prunes a
 > ZFS snapshots on a backup dataset would silently hold deleted VZDump files alive,
 > consuming large amounts of space — avoid entirely.
 
+#### Using snapshots
+
+Snapshots are accessible as a read-only directory tree — no special tools needed to read files:
+
+```
+/<mountpoint>/.zfs/snapshot/<snapshot-name>/
+```
+
+Example — browse and recover a file:
+```bash
+ls /mnt/archiv/.zfs/snapshot/
+cp /mnt/archiv/.zfs/snapshot/autosnap_2025-10-10_daily/path/to/file.txt ~/recovered.txt
+```
+
+List all snapshots for a dataset:
+```bash
+zfs list -t snapshot kashon01/d01-archiv
+```
+
+Roll back an entire dataset to a snapshot (destructive — all changes since the snapshot are lost):
+```bash
+zfs rollback kashon01/d01-archiv@autosnap_2025-10-10_daily
+```
+
+Clone a snapshot into a new writable dataset (non-destructive — original dataset unchanged):
+```bash
+zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-recovered
+```
+
 #### Summary
 
 | Component | Where | How reached |
