@@ -8,8 +8,10 @@
 
   ssh = "kitten ssh";
   ssh_vps = "ssh root@31.70.105.226";
-  # ssh_mc = "ssh root@31.70.105.226";
-  # ssh_hm = "ssh root@31.70.105.226";
+  ssh_pm-lan = "ssh root@192.168.100.100";
+  ssh_pm-wan = "ssh root@100.64.0.4";
+  ssh_hs-lan = "ssh root@192.168.100.56";
+  ssh_hs-wan = "ssh root@100.64.0.5";
 
   l = "eza";
   ll = "eza -l";

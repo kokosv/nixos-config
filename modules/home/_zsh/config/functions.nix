@@ -48,14 +48,11 @@
       vps)
         sudo nixos-rebuild switch --flake ~/.nixos-config#vps --target-host root@31.70.105.226
         ;;
-      mc)
-        echo "mc: not configured yet"
-        ;;
-      hm)
-        echo "hm: not configured yet"
+      homeserver)
+        sudo nixos-rebuild switch --flake ~/.nixos-config#homeserver --target-host root@100.64.0.5
         ;;
       *)
-        echo "Usage: nixreb <kt480|klegion|vps|mc|hm>"
+        echo "Usage: nixreb <kt480|klegion|vps|homeserver>"
         ;;
     esac
   }
