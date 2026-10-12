@@ -11,8 +11,8 @@
         server_url = "https://headscale.vafla.eu";
         dns = {
           base_domain = "tailnet.vafla.eu";
-          # primary will be the home VM Technitium IP — fill in after home VM is up
-          nameservers.global = [ "86.54.11.100" ]; # DNS4EU unfiltered fallback
+          nameservers.global = [ "86.54.11.100" ]; # DNS4EU — catch-all for everything else
+          nameservers.split."vafla.eu" = [ "100.64.0.5" ]; # Technitium — authoritative for vafla.eu
         };
         derp.server = {
           enabled = true;

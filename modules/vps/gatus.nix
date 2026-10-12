@@ -10,29 +10,27 @@
 
           # ── VPS ────────────────────────────────────────────────────────────
           {
-            name = "Landing page";
-            group = "VPS";
-            enabled = false;
-            url = "https://vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
-          }
-          {
             name = "Headscale";
             group = "VPS";
             url = "https://headscale.vafla.eu/health";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            # Shared *.vafla.eu wildcard cert — only checked here, redundant elsewhere.
+            conditions = [
+              "[STATUS] == 200"
+              "[CERTIFICATE_EXPIRATION] > 336h"
+            ];
           }
           {
             name = "Headplane";
             group = "VPS";
             enabled = false;
-            url = "https://headplane.vafla.eu";
+            # Direct check — bypasses Authentik (which only ever gates the request
+            # before the backend, so a public-hostname check never reflects real health).
+            # Runs on the VPS itself, not homeserver.
+            url = "http://127.0.0.1:3000";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
-
           # ── MC ─────────────────────────────────────────────────────────────
           {
             name = "Minecraft server";
@@ -48,7 +46,7 @@
             enabled = false;
             url = "https://mc.vafla.eu";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "map.mc.vafla.eu";
@@ -56,121 +54,146 @@
             enabled = false;
             url = "https://map.mc.vafla.eu";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
 
           # ── Home Server ─────────────────────────────────────────────────────
           {
+            name = "Landing page";
+            group = "Home Server";
+            enabled = false;
+            url = "https://vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "Proxmox";
+            group = "Home Server";
+            url = "https://proxmox.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+
             name = "Homarr";
             group = "Home Server";
             enabled = false;
-            url = "https://homarr.vafla.eu";
+            # Direct backend check over tailnet — bypasses Authentik, which only ever
+            # gates the request before it reaches the backend. Port TBD at deploy time.
+            url = "http://100.64.0.5:9999";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Microbin";
             group = "Home Server";
             enabled = false;
-            url = "https://share.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Forgejo";
             group = "Home Server";
             enabled = false;
-            url = "https://git.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Owncast";
             group = "Home Server";
             enabled = false;
-            url = "https://stream.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Cryptpad";
             group = "Home Server";
             enabled = false;
-            url = "https://dok.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Peertube";
             group = "Home Server";
             enabled = false;
-            url = "https://tube.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Immich";
             group = "Home Server";
             enabled = false;
-            url = "https://media.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Jellyfin";
             group = "Home Server";
             enabled = false;
-            url = "https://tv.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Calibre";
             group = "Home Server";
             enabled = false;
-            url = "https://biblioteka.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Homelable";
             group = "Home Server";
             enabled = false;
-            url = "https://chertezh.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Archivebox";
             group = "Home Server";
             enabled = false;
-            url = "https://webarhiv.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Feishin";
             group = "Home Server";
             enabled = false;
-            url = "https://muzika.vafla.eu";
+            # Backend is actually Navidrome (Feishin is just a client UI) — port TBD at deploy time
+            url = "http://100.64.0.5:9999";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Matrix";
             group = "Home Server";
             enabled = false;
-            url = "https://matrix.vafla.eu";
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "Technitium";
             group = "Home Server";
-            enabled = false;
-            url = "https://dns.vafla.eu";
+            url = "http://100.64.0.5:5380"; # direct backend check, bypasses Authentik
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "Authentik";
+            group = "Home Server";
+            url = "https://auth.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "radio-spektar.vafla.eu";
@@ -178,7 +201,7 @@
             enabled = false;
             url = "https://radio-spektar.vafla.eu";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "recepti.vafla.eu";
@@ -186,7 +209,7 @@
             enabled = false;
             url = "https://recepti.vafla.eu";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
           {
             name = "rechnik.vafla.eu";
@@ -194,7 +217,7 @@
             enabled = false;
             url = "https://rechnik.vafla.eu";
             interval = "5m";
-            conditions = [ "[STATUS] == 200" "[CERTIFICATE_EXPIRATION] > 336h" ];
+            conditions = [ "[STATUS] == 200" ];
           }
 
         ];

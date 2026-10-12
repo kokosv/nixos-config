@@ -14,6 +14,8 @@
         nginx
         geoip
         anubis
+        technitiumProxy
+        proxmoxProxy
         gatus
         fail2ban
       ])
