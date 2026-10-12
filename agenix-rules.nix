@@ -21,6 +21,7 @@ let
   # ── host keys (for boot decryption) ─────────────────────────────────────────
   kt480 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGbip9p6/LouVHZbgAjnf4tB2FZmwtPvRwt7py7Zvcn root@kt480";
   vps = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA1WNxUkom4X0JT0pq+1/svnTkL6revNEDlDq/g3GELx root@nixos";
+  homeserver = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZgP5omrbgNjq4eIp+Tkif70nsO0SjgRNKGvocxMPK6 root@homeserver";
   # klegion = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI REPLACE_ME root@klegion";
 
   # ── user keys (optional, for editing secrets without root) ───────────────────
@@ -34,7 +35,8 @@ let
   # ── groups ───────────────────────────────────────────────────────────────────
   allHosts = [
     kt480
-    vps # klegion
+    vps
+    homeserver # klegion
   ];
   allKeys = allHosts ++ [ koko recovery ];
 in
@@ -46,6 +48,11 @@ in
   # ── vps secrets ──────────────────────────────────────────────────────────────
   "secrets/desec-token.age".publicKeys = [ vps koko recovery ];
   "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko recovery ];
+
+  # ── homeserver secrets ────────────────────────────────────────────────────────
+  "secrets/authentik-secret-key.age".publicKeys = [ homeserver koko recovery ];
+  "secrets/authentik-postgres-password.age".publicKeys = [ homeserver koko recovery ];
+  "secrets/authentik-bootstrap.age".publicKeys = [ homeserver koko recovery ];
 
   # ── host-specific secrets (examples) ─────────────────────────────────────────
   # "secrets/kt480-wifi-password.age".publicKeys = [ kt480 koko ];

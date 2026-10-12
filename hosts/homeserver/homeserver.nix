@@ -4,8 +4,11 @@
     specialArgs = { inherit inputs; };
     modules = (with config.nixos; [
       tailscale
+      agenix
     ]) ++ (with config.homeserver; [
       basePackages
+      technitium
+      authentik
     ]) ++ [
       ./_homeserver/hardware-configuration.nix
       ./_homeserver/disko.nix
