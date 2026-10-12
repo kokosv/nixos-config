@@ -36,13 +36,22 @@ Self-host a stack of services from a **home server**, made publicly reachable th
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Home: Proxmox host (Debian)                                 │
-│    ├── Tailscale (apt) — for Proxmox GUI on tailnet          │
+│  Home: Proxmox host "monolit" (Debian)                       │
+│    ├── Tailscale (apt) — 100.64.0.4, tailnet SSH + LAN SSH   │
+│    │     fallback (192.168.100.100)                          │
 │    ├── NUT server (apt) — reads EG-UPS-033 USB directly      │
-│    └── NixOS VM ("home-vm")                                  │
-│          - Authentik + application services                   │
-│          - PeaNUT (OCI) → connects to NUT on baremetal       │
-│          - No public ports open. Reachable only over Tailscale│
+│    └── NixOS VM "homeserver" — 100.64.0.5 (tailnet) /        │
+│          192.168.100.56 (static LAN)                          │
+│          - 10 cores (host passthrough), 26-30GB RAM,          │
+│            256GB disk on `fastvm` (dedicated LVM-thin pool,   │
+│            nvme1n1, isolated from boot disk + kashon01 RAID)  │
+│          - Runs MC server too — no separate MC VM             │
+│          - Authentik (native Postgres+Redis, server+worker    │
+│            as OCI/podman containers) — deployed, working       │
+│          - Technitium DNS — deployed, `vafla.eu` zone live    │
+│          - No public ports open. SSH reachable over tailnet   │
+│            and LAN (not tailnet-only, unlike the original     │
+│            plan — see §15)                                    │
 └─────────────────────────────────────────────────────────────┘
                               │
                      Tailscale tunnel (WireGuard)
@@ -87,7 +96,11 @@ services.headscale = {
   port = 8080;
   settings = {
     server_url = "https://headscale.vafla.eu";
-    dns.base_domain = "tailnet.vafla.eu";
+    dns = {
+      base_domain = "tailnet.vafla.eu";
+      nameservers.global = [ "86.54.11.100" ]; # DNS4EU — catch-all
+      nameservers.split."vafla.eu" = [ "100.64.0.5" ]; # Technitium — authoritative for vafla.eu
+    };
     derp.server = {
       enabled = true; region_id = 999;
       region_code = "home"; region_name = "Home";
@@ -97,6 +110,10 @@ services.headscale = {
   };
 };
 ```
+
+> `headscale.vafla.eu` must resolve to the VPS's **real public IP** everywhere, including
+> from tailnet clients — never the tailscale IP. DERP/STUN bootstrap needs a real
+> internet path; pointing it at `100.64.x.x` is a chicken-and-egg deadlock.
 
 ---
 
@@ -143,7 +160,10 @@ networking.firewall = {
 services.tailscale.enable = true;
 ```
 
-**Home VM:** no public ports — tailnet only.
+**Home VM ("homeserver"):** no public ports. SSH listens on both `100.64.0.5` (tailnet)
+and `192.168.100.56` (static LAN, gateway `192.168.100.1`) — deliberately not tailnet-only
+like originally planned; see §15 for why. `networking.useDHCP = false`, static address set
+declaratively so `sshd`'s `listenAddresses` stays valid across reboots.
 
 ---
 
@@ -199,54 +219,83 @@ nginx (TLS, tailscale0) → Authentik auth_request → backend
 
 ## 9. Authentik SSO + fail2ban
 
-Authentik provides OIDC/SAML/forward-auth. Runs **on the home VM**; nginx on the VPS
-makes `auth_request` calls over the Tailscale tunnel.
+**Deployed.** No native NixOS service module exists — only a nixpkgs package. Deployment
+(`modules/homeserver/authentik.nix`): native `services.postgresql` +
+`services.redis.servers.authentik`, with `authentik-server`/`authentik-worker` as
+`--network=host` podman containers (`ghcr.io/goauthentik/server:2025.12.6`) talking to
+Postgres/Redis over `127.0.0.1`.
+
+**Gotchas:**
+- `ensureUsers` can't set a Postgres password declaratively — oneshot service
+  `authentik-postgres-password` runs `ALTER ROLE` from the agenix secret on boot, ordered
+  `after = [ "postgresql.service" "postgresql-setup.service" ]` (user creation happens in
+  the latter unit, not the former).
+- Container runs as UID 1000; with podman `--network=host` that's UID 1000 on the host too
+  — `/var/lib/authentik/{media,templates,certs}` must be `chown 1000:1000`, not root.
+- `akadmin`'s password is random unless `AUTHENTIK_BOOTSTRAP_EMAIL`/`_PASSWORD` env vars
+  are set (agenix secret `authentik-bootstrap.age`). No bootstrap username var exists —
+  login is always `akadmin`.
+
+**Domain-level forward auth** — one provider covers every `*.vafla.eu` subdomain via a
+shared SSO cookie:
+- Provider: Proxy Provider, mode **Forward auth (domain level)**
+- **Authentication URL**: `https://auth.vafla.eu` (externally-reachable hostname, not the
+  internal `100.64.0.5:9000` backend address)
+- **Cookie domain**: `vafla.eu` — must be the parent/apex domain, not `auth.vafla.eu` itself
+- One Application (`vafla.eu`) bound to the embedded outpost — no per-service Application needed
+
+`auth.vafla.eu` is the only door — a separate tailnet-only `authentik.vafla.eu` was removed
+as redundant. Since both led to the same app, `akadmin`'s admin UI (`/if/admin/`) is
+technically reachable via the public `auth.vafla.eu` too, protected by Anubis + credentials
++ Authentik's own rate-limiting, not a network-level restriction.
 
 Authentik applies to:
 - **Tier 0c** — public apps (Anubis first, then Authentik)
-- **Tier 1** — tailnet-only private services (Authentik only, no Anubis)
+- **Tier 1** — tailnet-only private services (Authentik only, no Anubis) — **except
+  `proxmox.vafla.eu`**, an explicit exception with no Authentik wrapper (Proxmox has its
+  own login; the added friction was judged unnecessary for a single-admin box)
 
-Exempt: `headscale.vafla.eu`, static/read-only public services (tier 0b).
+Exempt: `headscale.vafla.eu`, `auth.vafla.eu` itself (circular), static/read-only public
+services (tier 0b).
 
 **fail2ban** runs on the **VPS**, watching nginx access logs — not on the home VM (see §7).
 
-Reusable nginx snippet:
+Reusable nginx snippet (as actually deployed — see `modules/vps/technitium-proxy.nix` for
+a full working example):
 ```nix
-authentikAuthRequest = ''
-  auth_request /outpost.goauthentik.io/auth/nginx;
-  error_page 401 = @goauthentik_proxy_signin;
-  auth_request_set $auth_cookie $upstream_http_set_cookie;
-  add_header Set-Cookie $auth_cookie;
-'';
-```
-
-nginx virtualHost templates:
-```nix
-# Tier 0c — public, Anubis + Authentik
-services.nginx.virtualHosts."<service>.vafla.eu" = {
-  forceSSL = true; useACMEHost = "vafla.eu";
-  locations."/" = {
-    proxyPass = "http://unix:/run/anubis/anubis-<service>/anubis.sock";
-    extraConfig = authentikAuthRequest;
-  };
-  locations."/outpost.goauthentik.io/" = {
-    proxyPass = "http://<authentik-tailnet-ip>:9000/outpost.goauthentik.io/";
-  };
+locations."/" = {
+  proxyPass = "http://100.64.0.5:<port>"; # or an Anubis socket for tier 0c
+  extraConfig = ''
+    auth_request /outpost.goauthentik.io/auth/nginx;
+    error_page 401 = @authentik_redirect;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $auth_cookie;
+    auth_request_set $authentik_username $upstream_http_x_authentik_username;
+    auth_request_set $authentik_groups   $upstream_http_x_authentik_groups;
+    proxy_set_header X-authentik-username $authentik_username;
+    proxy_set_header X-authentik-groups   $authentik_groups;
+  '';
 };
-
-# Tier 1 — tailnet-only, Authentik only
-services.nginx.virtualHosts."<service>.vafla.eu" = {
-  listenAddresses = [ "100.64.0.1" ];
-  forceSSL = true; useACMEHost = "vafla.eu";
-  locations."/" = {
-    proxyPass = "http://<home-vm-tailscale-ip>:<port>";
-    extraConfig = authentikAuthRequest;
-  };
-  locations."/outpost.goauthentik.io/" = {
-    proxyPass = "http://<authentik-tailnet-ip>:9000/outpost.goauthentik.io/";
-  };
+locations."/outpost.goauthentik.io/" = {
+  proxyPass = "http://100.64.0.5:9000/outpost.goauthentik.io/";
+  extraConfig = ''
+    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    add_header Set-Cookie $auth_cookie;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+  '';
+};
+locations."@authentik_redirect" = {
+  extraConfig = ''
+    return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
+  '';
 };
 ```
+
+**Unauthenticated request flow**: `auth_request` → 401 → redirect to
+`<service>/outpost.goauthentik.io/start?rd=...` → Authentik redirects to `auth.vafla.eu` →
+Anubis → login → cookie set on `.vafla.eu` → redirect back → `auth_request` passes →
+proxied to the service's own Anubis instance → backend. Cookie persists across subsequent
+visits, so this chain only runs once per login.
 
 ---
 
@@ -264,19 +313,36 @@ Current secrets:
 - `secrets/desec-token.age` — deSEC API token for ACME DNS-01
 - `secrets/headplane-cookie-secret.age` — Headplane session signing key
 - `secrets/ssh-private-key.age` — kt480 SSH private key
+- `secrets/authentik-secret-key.age` — `AUTHENTIK_SECRET_KEY=...` (homeserver)
+- `secrets/authentik-postgres-password.age` — `AUTHENTIK_POSTGRESQL__PASSWORD=...` (homeserver)
+- `secrets/authentik-bootstrap.age` — `AUTHENTIK_BOOTSTRAP_EMAIL=...` + `AUTHENTIK_BOOTSTRAP_PASSWORD=...` (homeserver)
+
+`homeserver` is now a registered agenix host (added to `allHosts` in `agenix-rules.nix`).
 
 ---
 
 ## 11. Tailnet DNS — Technitium + DNS4EU fallback
 
-Technitium runs on the home VM. Devices on the tailnet use it as their DNS server,
-so `*.vafla.eu` resolves to VPS tailscale IP (for tailnet-only services) instead of
-the public VPS IP.
+Technitium runs on the home VM (`homeserver`, `100.64.0.5`) via `services.technitium-dns-server`
+(`modules/homeserver/technitium.nix`). `openFirewall = false` — `tailscale0` is already trusted.
 
-Headscale `nameservers.global` = `[<technitium-tailscale-ip>, "86.54.11.100"]`
-(Technitium primary, DNS4EU joindns4.eu unfiltered as fallback).
+Headscale split-DNS (`modules/vps/headscale.nix`): `nameservers.split."vafla.eu" = [
+"100.64.0.5" ]`, `nameservers.global = [ "86.54.11.100" ]`. Every tailnet device sends
+`vafla.eu` queries to Technitium, everything else to DNS4EU.
 
-Local machine DNS: `86.54.11.100 86.54.11.200` (joindns4.eu — DNSSEC validating).
+**Zone structure in Technitium** — `vafla.eu` itself is a **Forwarder** zone (→
+`86.54.11.100`), not Primary. Tailnet-specific overrides live in their own, more specific
+**Primary** zones (most-specific-match wins):
+- `dns.vafla.eu` → `100.64.0.1` (tier 1, no public record)
+- `proxmox.vafla.eu` → `100.64.0.1` (tier 1, no public record)
+- `headscale.vafla.eu` → `31.70.105.226` (VPS **public** IP — needed for DERP bootstrap,
+  see §4; this is the one record that must NOT point at the tailscale IP)
+
+Everything else (public tier 0a/0b/0c subdomains, `auth.vafla.eu`) needs no entry — the
+Forwarder zone handles it automatically. Only add a new zone here when a subdomain has no
+public DNS record at all.
+
+Local machine DNS (non-tailnet): `86.54.11.100 86.54.11.200` (joindns4.eu — DNSSEC validating).
 
 ---
 
@@ -304,6 +370,7 @@ deSEC A record → VPS public IP. Static/read-only — no login wall needed.
 | `radio-spektar.vafla.eu` | Static web page | home VM |
 | `recepti.vafla.eu` | Static web page | home VM |
 | `rechnik.vafla.eu` | TBD | home VM |
+| `auth.vafla.eu` | Authentik SSO login portal — **deployed**, no Authentik wrapper (circular) | home VM (`100.64.0.5:9000`) |
 
 ### Tier 0c — public, Anubis + Authentik + fail2ban
 
@@ -332,8 +399,9 @@ No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tail
 | `webarhiv.vafla.eu` | Archivebox | home VM |
 | `muzika.vafla.eu` | Feishin (Navidrome frontend) | home VM |
 | `*arr.vafla.eu` | \*arr stack (TBD) | home VM |
-| `dns.vafla.eu` | Technitium web UI | home VM |
+| `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
 | `headplane.vafla.eu` | Headplane (Headscale web UI) | VPS localhost:3000 |
+| `proxmox.vafla.eu` | Proxmox web GUI — **deployed, no Authentik** (has its own login) | Proxmox baremetal (`100.64.0.4:8006`) |
 
 ### DNS summary
 
@@ -436,8 +504,11 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [x] `modules/vps/nginx.nix` — base nginx with geoip2 module override
 - [x] `modules/vps/fail2ban.nix` — sshd + nginx jails
 - [x] `modules/vps/geoip.nix` — db-ip.com MMDB, monthly timer
-- [x] `modules/vps/gatus.nix` — Gatus status page on `bachkali.vafla.eu:8081`; all endpoints
-      pre-configured (disabled until deployed), grouped VPS / MC / Home Server
+- [x] `modules/vps/gatus.nix` — Gatus status page on `bachkali.vafla.eu:8081`, grouped
+      VPS / MC / Home Server. Authentik-gated endpoints check the backend directly over
+      tailnet (`100.64.0.5:<port>`), not the public hostname — `auth_request` would
+      otherwise intercept before the backend, making the check meaningless. Cert
+      expiration checked only on Headscale (shared wildcard cert, redundant elsewhere).
 - [x] `modules/vps/anubis.nix` — Anubis in front of Gatus; nginx group fix; geo-blocking
 - [ ] `modules/vps/headplane.nix` — deferred to Stage 5; needs home VM up for Authentik
       (behind Anubis + Authentik + fail2ban, tailnet-only, `listenAddresses`)
@@ -450,7 +521,7 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [x] Confirm wildcard cert issued
 - [x] Create Headscale user: `headscale users create koko`
 - [x] Join VPS to its own tailnet
-- [ ] Note VPS tailscale IP — fill into tier-1 `listenAddresses` (already: `100.64.0.1`)
+- [x] Note VPS tailscale IP — `100.64.0.1`, used in tier-1 `listenAddresses` throughout
 
 ### Stage 4 — enroll devices (in progress)
 
@@ -460,47 +531,56 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 - [x] Join phone (Android, kthinkphone) — enrolled
       > Headscale 0.28 had Android crash bug; fixed by upgrading to 0.29.4 via flake input.
 - [~] Join Windows machine — skipped for now
-- [ ] Join home VM once provisioned
-- [ ] Note home VM tailscale IP — fill into `headscale.nix` `nameservers.global`
-      and Authentik `proxyPass` placeholders
+- [x] Join home VM (`homeserver`) once provisioned — `100.64.0.5`
+- [x] Note home VM tailscale IP — applied to `headscale.nix` `nameservers.global` and all
+      tier-1 `proxyPass` targets (`100.64.0.5`)
 
 ### Stage 5 — service layer (after home VM is up with Authentik + Technitium)
 
-- [ ] Provision home VM on Proxmox (NixOS)
-- [ ] Configure SSH on home VM: tailnet-only (`ListenAddress <home-vm-tailscale-ip>`);
-      add authorized keys; no password auth; no local network SSH (tailnet is the only path)
-- [ ] Set up Authentik on home VM
-- [ ] Set up Technitium on home VM
-- [ ] Fill in home VM tailscale IP in `headscale.nix` `nameservers.global`
-- [ ] Fill in VPS tailscale IP in tier-1 nginx `listenAddresses`
+- [x] Provision home VM on Proxmox (NixOS) — named `homeserver`, `hosts/homeserver/`.
+      q35 + OVMF/UEFI (Secure Boot pre-enroll off), 10 cores (`host` type), 26-30GB RAM,
+      256GB disk on `fastvm`. MC server runs as a service inside this VM, not a separate VM.
+- [x] Configure SSH on home VM — tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`),
+      key-only, `PermitRootLogin = "prohibit-password"` (see §15)
+- [x] Set up Authentik on home VM — `modules/homeserver/authentik.nix` (see §9)
+- [x] Set up Technitium on home VM — `modules/homeserver/technitium.nix` (see §11)
+- [x] Fill in home VM tailscale IP in `headscale.nix` `nameservers.global` (`100.64.0.5`)
+- [x] Fill in VPS tailscale IP in tier-1 nginx `listenAddresses` (`100.64.0.1`) — used by
+      `dns.vafla.eu` and `proxmox.vafla.eu` so far
 - [ ] Fill in home VM tailscale IP in `mc-proxy.nix` (MC server runs on home VM); wire into vps.nix
 - [ ] Wire up `modules/vps/headplane.nix` — tailnet-only (`headplane.vafla.eu`),
-      behind Anubis + Authentik + fail2ban; `listenAddresses = [ "100.64.0.1" ]`
-- [ ] Add Anubis instances per service (`modules/vps/anubis.nix`)
+      behind Anubis + Authentik + fail2ban; `listenAddresses = [ "100.64.0.1" ]`;
+      the `<authentik-tailnet-ip>` placeholder can now be filled with `100.64.0.5`
+- [~] Add Anubis instances per service (`modules/vps/anubis.nix`) — done for `auth.vafla.eu`;
+      rest still pending per-service
 - [ ] Add nginx virtualHosts for tier-0b/0c services
-- [ ] Add nginx virtualHosts for tier-1 services
-- [ ] Add Authentik outpost `proxyPass` blocks
+- [x] Add nginx virtualHosts for tier-1 services — `dns.vafla.eu`
+      (`modules/vps/technitium-proxy.nix`) and `proxmox.vafla.eu`
+      (`modules/vps/proxmox-proxy.nix`, no-Authentik exception) done; rest pending
+- [x] Add Authentik outpost `proxyPass` blocks — done for `dns.vafla.eu`; template known,
+      same pattern for the rest
 - [ ] Add deSEC A records for all tier-0b and tier-0c subdomains → VPS public IP
-- [ ] Add Technitium DNS records for all tier-1 subdomains → VPS tailscale IP
+- [~] Add Technitium DNS records for all tier-1 subdomains → VPS tailscale IP — `dns` and
+      `proxmox` done; rest pending
 
 ### Stage 6 — Proxmox host + UPS + ZFS storage (after home VM is up)
 
 #### Proxmox host basics
 
 - [ ] **BIOS**: set AC Power Loss → **Last State** (not Always On) — required for UPS auto-boot
-- [ ] Install Tailscale on Proxmox Debian host (`apt install tailscale`);
-      register with Headscale
-- [ ] Add Technitium records:
-      `proxmox.vafla.eu` → VPS tailscale IP (tier-1 web GUI via nginx + Authentik);
-      `baremetalvm.vafla.eu` → Proxmox baremetal tailscale IP (direct SSH)
-- [ ] Add nginx virtualHost for `proxmox.vafla.eu` on VPS (tier-1, Authentik, proxyWebsockets,
-      proxyPass → Proxmox baremetal tailscale IP:8006)
-- [ ] Configure SSH on Proxmox baremetal: listen on tailnet IP + local LAN IP;
-      tailnet SSH: `ssh root@baremetalvm.vafla.eu`;
-      local SSH: `ssh root@<lan-ip>` (fallback if tailnet is down);
-      no password auth; add authorized keys
+- [x] Install Tailscale on Proxmox Debian host (`apt install tailscale` — needed the
+      official Tailscale apt repo first, not in Debian's default repos);
+      registered with Headscale — `100.64.0.4`
+- [x] Add Technitium record: `proxmox.vafla.eu` → VPS tailscale IP (`100.64.0.1`)
+- [ ] Add Technitium record: `baremetalvm.vafla.eu` → Proxmox baremetal tailscale IP
+      (direct SSH, not yet added)
+- [x] Add nginx virtualHost for `proxmox.vafla.eu` on VPS — **no Authentik** (deliberate
+      exception, see §9/§12), proxyWebsockets, proxyPass → `100.64.0.4:8006`,
+      `proxy_ssl_verify off` (Proxmox serves its own self-signed cert)
+- [x] Configure SSH on Proxmox baremetal: listens on tailnet IP (`100.64.0.4`) + local LAN IP
+      (`192.168.100.100`); key-only, `PermitRootLogin = "prohibit-password"`
 - [ ] Set each VM: Options → **Start at boot = Yes** — VMs auto-start after host boots
-      (this makes the UPS power-restore cycle fully automatic)
+      (this makes the UPS power-restore cycle fully automatic). Applies to `homeserver` now.
 
 #### UPS + NUT
 
@@ -508,24 +588,23 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
       copy `/etc/nut/{nut.conf,ups.conf,upsd.conf,upsd.users,upsmon.conf,upssched.conf}`;
       copy `notes/ups/shutdown.sh` → `/etc/nut/upssched-cmd`; `chmod +x /etc/nut/upssched-cmd`;
       `systemctl enable --now nut-server nut-monitor`; verify with `upsc ups@localhost`
-- [ ] Add PeaNUT OCI container to home VM (`virtualisation.oci-containers`);
-      point `NUT_HOST` to Proxmox bridge IP (e.g. `10.0.0.1`) — fill in at deploy time
-- [ ] Configure Homarr PeaNUT widget → `http://localhost:8082`
-
 #### ZFS datasets + storage
 
-- [ ] Add `kashon01` pool as Proxmox storage backend (pool already exists — just register it):
-      Datacenter → Storage → Add → ZFS → pool: `kashon01`, content: Disk image + ISO image
-- [ ] Create the four datasets:
+- [x] ~~Add `kashon01` pool as Proxmox storage backend~~ — **decided unnecessary**. VM
+      disks live on `fastvm` (dedicated LVM-thin pool on `nvme1n1`, isolated from both the
+      boot disk and `kashon01`), not on `kashon01` directly. `kashon01` is only ever
+      consumed via the VirtioFS directory shares below and the `d03-vm-backup` Directory
+      storage — neither needs the pool registered as a ZFS-type Proxmox storage backend.
+- [x] Create the four datasets:
       ```
       zfs create kashon01/d01-archiv
       zfs create kashon01/d02-lichni
       zfs create kashon01/d03-vm-backup
       zfs create kashon01/d04-mc
       ```
-- [ ] Add `kashon01/d03-vm-backup` as Proxmox Backup storage:
+- [x] Add `kashon01/d03-vm-backup` as Proxmox Backup storage (ID: `d03-vm-backup`):
       Datacenter → Storage → Add → Directory → path: `/kashon01/d03-vm-backup`, content: Backup;
-      set retention (keep last 3–5 per VM) in storage Edit → Prune options — **no sanoid on this dataset**
+      retention set in storage Edit → Prune options — **no sanoid on this dataset**
 - [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §14 for full config);
       `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically
 - [ ] Set up daily cron to copy configs to `d01-archiv` (add to `crontab -e` on Proxmox host):
@@ -533,13 +612,14 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
       0 3 * * * rsync -a /etc/pve/ /kashon01/d01-archiv/pve/
       0 3 * * * rsync -a /etc/nut/ /kashon01/d01-archiv/nut/
       ```
-- [ ] Create Directory Mappings (Datacenter → Resource Mappings → Directory):
+- [x] Create Directory Mappings (Datacenter → Resource Mappings → Directory):
       ```
       d01-archiv  →  /kashon01/d01-archiv
       d02-lichni  →  /kashon01/d02-lichni
       d04-mc      →  /kashon01/d04-mc
       ```
-- [ ] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS):
+- [ ] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS) — verify whether
+      this was done during VM creation or still needs doing:
       ```
       mapping: d01-archiv,  tag: d01-archiv
       mapping: d02-lichni,  tag: d02-lichni
@@ -556,7 +636,20 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 
 ## 14. Open items / not yet finalized
 
-### Proxmox host on tailnet + UPS + PeaNUT plan
+### Gotchas hit provisioning the `homeserver` VM (for next time)
+
+- Secure Boot must be off (uncheck "Pre-Enroll keys" on the EFI disk) — NixOS ISO's
+  bootloader isn't signed.
+- `disko`'s ESP partition needs `type = "EF00";` explicitly for `systemd-boot` to install
+  (`bootctl` checks the GPT partition type GUID). GRUB doesn't need this.
+- Nix flakes only see git-tracked files — `git add` (staging is enough) before building.
+- `disko --mode destroy,format,mount` wipes `/mnt` entirely — regenerate
+  `hardware-configuration.nix` after any re-run.
+- `nixos-rebuild switch --target-host` activating a network change (DHCP → static) can
+  kill the SSH session mid-activation. Recovery: Proxmox console → `ip addr add`/
+  `ip route add` manually, then retry.
+
+### Proxmox host on tailnet + UPS plan
 
 #### Layout
 
@@ -568,9 +661,7 @@ Proxmox baremetal (Debian)
   ├── NUT server (apt) — reads UPS via USB; SHUTDOWNCMD="shutdown -h now"
   │     └── Proxmox pve-guests.service gracefully stops all VMs on host shutdown
   └── home VM (NixOS)
-        ├── Tailscale (tailnet member)
-        ├── PeaNUT (OCI container) — connects to NUT on baremetal bridge IP
-        └── Homarr — PeaNUT widget on localhost (tier-1, behind Authentik)
+        └── Tailscale (tailnet member)
 ```
 
 NUT lives on the baremetal because the shutdown path must be direct: when the UPS
@@ -602,37 +693,9 @@ USB is plugged directly into the Proxmox host — no passthrough needed.
 See `notes/ups/` for the exact `/etc/nut/` config files and the shutdown script.
 
 Key points:
-- `upsd.conf`: listen on the VM bridge IP (e.g. `10.0.0.1`) so PeaNUT on the home VM
-  can reach it; firewall-restrict port 3493 to the bridge subnet only
 - `upsmon.conf`: `SHUTDOWNCMD "/sbin/shutdown -h now"`
 - Proxmox's `pve-guests.service` fires during systemd shutdown and stops all VMs
   gracefully before the host powers off — no custom Proxmox API scripting needed
-
-#### Step 3 — PeaNUT on the home VM
-
-PeaNUT is not in nixpkgs — OCI container. NUT is on the baremetal, so point
-`NUT_HOST` at the Proxmox bridge IP (or Proxmox tailscale IP):
-
-```nix
-virtualisation.oci-containers.containers.peanut = {
-  image = "ghcr.io/brandawg93/peanut:latest";
-  ports = [ "8082:8080" ];
-  environment = {
-    NUT_HOST = "<proxmox-bridge-ip>";  # e.g. 10.0.0.1 — fill in at deploy time
-    NUT_PORT = "3493";
-    NUT_USER = "monitor";
-    NUT_PASS = "<from agenix secret>";
-  };
-};
-```
-
-#### Step 4 — Homarr widget
-
-Homarr is tier-1 (tailnet-only, behind Authentik at `homarr.vafla.eu`).
-PeaNUT has no vhost, no DNS entry, no external access — purely internal.
-The only way to see UPS data is through the Homarr dashboard.
-
-In Homarr: add PeaNUT widget → URL `http://localhost:8082`.
 
 ### ZFS datasets + sanoid snapshot plan
 
@@ -722,12 +785,11 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 | Component | Where | How reached |
 |---|---|---|
 | Tailscale | Proxmox baremetal (apt) + each VM | tailnet |
-| Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`), Authentik |
+| Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`), **no Authentik** (exception) |
 | SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`baremetalvm.vafla.eu`) + local LAN IP |
-| SSH — home VM | home VM | tailnet only (`hsvm.vafla.eu`) |
+| SSH — home VM | `homeserver` | tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`) |
 | UPS USB | Direct to Proxmox baremetal | local USB on host |
 | NUT server | Proxmox baremetal (apt) | bridge subnet (port 3493) |
-| PeaNUT | home VM (OCI container) | localhost only — Homarr widget |
 | Homarr | home VM | tailnet, behind Authentik (`homarr.vafla.eu`) |
 | Shutdown | baremetal NUT → `shutdown -h now` | pve-guests.service stops VMs first |
 
@@ -763,6 +825,18 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 - **Headscale 0.29.4 via flake input**: nixpkgs stable had 0.28 which had an Android
   crash bug. Pinned to `github:juanfont/headscale/v0.29.4`; shows "dev" version string
   (expected — flake builds don't inject ldflags).
+- **MC server runs inside the `homeserver` VM, not a separate VM**: simpler to manage;
+  resource needs fit comfortably alongside everything else. `hosts/_mc-server.nix` and the
+  README's `mc` host row are stale.
+- **`homeserver` SSH reachable on LAN too, not tailnet-only**: parity with the Proxmox host,
+  convenience without needing the tailnet up. Still key-only/no-password.
+- **`fastvm` — dedicated LVM-thin pool for VM disks, isolated from `kashon01`**: a second
+  SSD (`nvme1n1`) wiped into its own pool, never sharing a VG with the boot disk or the RAID mirror.
+- **Authentik: native Postgres/Redis + OCI containers, not a native NixOS module**: no
+  `services.authentik` module exists in nixpkgs. See §9.
+- **`auth.vafla.eu` serves both the SSO redirect target and direct admin login** — the
+  redundant tailnet-only `authentik.vafla.eu` was removed. See §9 for the tradeoff.
+- **`proxmox.vafla.eu` is an explicit Authentik exception**: has its own login already.
 
 ---
 
@@ -774,5 +848,10 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 - **Anubis** — proof-of-work HTTP challenge tool (TecharoHQ/anubis) blocking AI/scraper crawlers.
 - **ACME / lego** — Let's Encrypt cert automation; lego is the client NixOS's `security.acme` uses.
 - **NUT** — Network UPS Tools; monitors UPS hardware and triggers shutdown scripts.
-- **PeaNUT** — web UI for NUT; Homarr-compatible widget for UPS status display.
 - **Gatus** — declarative status page; monitors endpoints and shows health dashboard.
+- **OCI containers / podman** — `virtualisation.oci-containers` runs plain Docker-image
+  containers under NixOS; defaults to podman as the backend for `stateVersion ≥ 22.05`.
+  Used for Authentik's server/worker (no native NixOS module exists for those).
+- **Forward auth (domain level)** — an Authentik Proxy Provider mode where one provider
+  protects every subdomain under a parent domain via a shared SSO cookie, instead of one
+  provider per protected application.
