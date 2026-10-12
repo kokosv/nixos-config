@@ -22,7 +22,7 @@
         Service = {
           Type = "oneshot";
           RemainAfterExit = true;
-          ExecStart = "${pkgs.coreutils}/bin/true";
+          ExecStart = "${pkgs.systemd}/bin/systemctl --user restart polybar.service";
         };
         Install.WantedBy = [ "graphical-session.target" ];
       };

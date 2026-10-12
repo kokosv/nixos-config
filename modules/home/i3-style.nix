@@ -15,7 +15,7 @@
           # execute at startup
           startup = [
             {
-              command = "${pkgs.systemd}/bin/systemctl --user start i3-session.service &";
+              command = "${pkgs.systemd}/bin/systemctl --user restart i3-session.service &";
               always = true;
             }
             {
@@ -24,6 +24,10 @@
             }
             {
               command = "${pkgs.xset}/bin/xset s off -dpms";
+              always = true;
+            }
+            {
+              command = "${pkgs.feh}/bin/feh --bg-fill ~/pic/wallpapers/down-market";
               always = true;
             }
             #       {

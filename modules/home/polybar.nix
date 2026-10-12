@@ -57,8 +57,8 @@
               "battery1"
               "battery0"
               "keyboard-layout"
-              "time"
               "date"
+              "time"
               "notifications"
               "powermenu"
             ];
