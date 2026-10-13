@@ -36,6 +36,12 @@
     sudo nix store optimise
   }
 
+  # Random hex string (defaults to 32 bytes)
+  passrnd() {
+    local n=''${1:-32}
+    openssl rand -hex "$n"
+  }
+
   # Rebuild a NixOS host by name
   nixreb() {
     case "$1" in
