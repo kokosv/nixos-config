@@ -1,9 +1,6 @@
 { lib, ... }: {
   options.vps.proxmoxProxy = lib.mkOption { type = lib.types.deferredModule; };
 
-  # Tier 1 — tailnet-only, but an explicit exception: no Authentik wrapper.
-  # Proxmox has its own login/auth; gating it behind Authentik too was deemed
-  # unnecessary friction for a single-admin box.
   config.vps.proxmoxProxy = { ... }: {
     services.nginx.virtualHosts."proxmox.vafla.eu" = {
       listenAddresses = [ "100.64.0.1" ];

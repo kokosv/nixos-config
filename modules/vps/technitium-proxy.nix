@@ -1,7 +1,7 @@
 { lib, ... }: {
   options.vps.technitiumProxy = lib.mkOption { type = lib.types.deferredModule; };
 
-  # Tier 1 — tailnet-only, Authentik-gated. Technitium's web UI runs on homeserver.
+  # Tier 1 — tailnet-only, Technitium's web UI runs on homeserver.
   config.vps.technitiumProxy = { ... }: {
     services.nginx.virtualHosts."dns.vafla.eu" = {
       listenAddresses = [ "100.64.0.1" ];

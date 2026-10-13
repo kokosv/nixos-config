@@ -51,6 +51,25 @@
       };
     };
 
+    # ── Enclosed (taina.vafla.eu) ────────────────────────────────────────────
+    services.anubis.instances.taina = {
+      settings = {
+        TARGET = "http://100.64.0.5:8787"; # enclosed on homeserver, over tailnet
+        BIND = "/run/anubis/anubis-taina/anubis.sock";
+        DIFFICULTY = 4;
+      };
+    };
+    services.nginx.virtualHosts."taina.vafla.eu" = {
+      forceSSL = true;
+      useACMEHost = "vafla.eu";
+      locations."/" = {
+        proxyPass = "http://unix:/run/anubis/anubis-taina/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+        '';
+      };
+    };
+
     # ── future public services go here ──────────────────────────────────────
     # services.anubis.instances.<name> = {
     #   settings = {

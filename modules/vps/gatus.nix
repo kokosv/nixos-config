@@ -23,9 +23,6 @@
           {
             name = "Headplane";
             group = "VPS";
-            # Direct check — bypasses Authentik (which only ever gates the request
-            # before the backend, so a public-hostname check never reflects real health).
-            # Runs on the VPS itself, not homeserver.
             url = "http://127.0.0.1:3000/admin"; # dashboard lives at /admin, not /
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
@@ -77,17 +74,16 @@
             name = "Homarr";
             group = "Home Server";
             enabled = false;
-            # Direct backend check over tailnet — bypasses Authentik, which only ever
-            # gates the request before it reaches the backend. Port TBD at deploy time.
+            # Port TBD at deploy time.
             url = "http://100.64.0.5:9999";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Microbin";
+            name = "Enclosed";
             group = "Home Server";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            enabled = true;
+            url = "https://taina.vafla.eu"; # no Authentik wrapper, public hostname check is meaningful
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -148,10 +144,10 @@
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Feishin";
+            name = "Navidrome";
             group = "Home Server";
             enabled = false;
-            # Backend is actually Navidrome (Feishin is just a client UI) — port TBD at deploy time
+            #  port TBD at deploy time
             url = "http://100.64.0.5:9999";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
@@ -167,7 +163,7 @@
           {
             name = "Technitium";
             group = "Home Server";
-            url = "http://100.64.0.5:5380"; # direct backend check, bypasses Authentik
+            url = "http://100.64.0.5:5380";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
