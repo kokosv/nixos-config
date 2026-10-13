@@ -23,11 +23,10 @@
           {
             name = "Headplane";
             group = "VPS";
-            enabled = false;
             # Direct check — bypasses Authentik (which only ever gates the request
             # before the backend, so a public-hostname check never reflects real health).
             # Runs on the VPS itself, not homeserver.
-            url = "http://127.0.0.1:3000";
+            url = "http://127.0.0.1:3000/admin"; # dashboard lives at /admin, not /
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -149,22 +148,6 @@
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Homelable";
-            group = "Home Server";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "Archivebox";
-            group = "Home Server";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
             name = "Feishin";
             group = "Home Server";
             enabled = false;
@@ -192,22 +175,6 @@
             name = "Authentik";
             group = "Home Server";
             url = "https://auth.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "radio-spektar.vafla.eu";
-            group = "Home Server";
-            enabled = false;
-            url = "https://radio-spektar.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "recepti.vafla.eu";
-            group = "Home Server";
-            enabled = false;
-            url = "https://recepti.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }

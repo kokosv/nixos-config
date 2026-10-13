@@ -2,7 +2,10 @@
   options.vps.headplane = lib.mkOption { type = lib.types.deferredModule; };
 
   config.vps.headplane = { config, ... }: {
-    age.secrets.headplane-cookie-secret.file = ../../secrets/headplane-cookie-secret.age;
+    age.secrets.headplane-cookie-secret = {
+      file = ../../secrets/headplane-cookie-secret.age;
+      owner = config.services.headscale.user;
+    };
 
     services.headplane = {
       enable = true;
@@ -23,6 +26,7 @@
       listenAddresses = [ "100.64.0.1" ];
       forceSSL = true;
       useACMEHost = "vafla.eu";
+      locations."= /".return = "302 /admin"; # dashboard lives at /admin, not /
       locations."/" = {
         proxyPass = "http://127.0.0.1:3000";
         proxyWebsockets = true;
@@ -38,7 +42,7 @@
         '';
       };
       locations."/outpost.goauthentik.io/" = {
-        proxyPass = "http://<authentik-tailnet-ip>:9000/outpost.goauthentik.io/";
+        proxyPass = "http://100.64.0.5:9000/outpost.goauthentik.io/";
         extraConfig = ''
           proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
           add_header Set-Cookie $auth_cookie;
