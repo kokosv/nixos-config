@@ -367,8 +367,6 @@ deSEC A record → VPS public IP. Static/read-only — no login wall needed.
 | `mc.vafla.eu` | Static page (server info, modpack, voice chat, map link) | home VM |
 | `map.mc.vafla.eu` | Bluemap (MC world map) | home VM |
 | `bachkali.vafla.eu` | Gatus (status page) | VPS localhost:8081 |
-| `radio-spektar.vafla.eu` | Static web page | home VM |
-| `recepti.vafla.eu` | Static web page | home VM |
 | `rechnik.vafla.eu` | TBD | home VM |
 | `auth.vafla.eu` | Authentik SSO login portal — **deployed**, no Authentik wrapper (circular) | home VM (`100.64.0.5:9000`) |
 
@@ -394,9 +392,7 @@ No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tail
 | Subdomain | Service | Backend |
 |---|---|---|
 | `homarr.vafla.eu` | Homarr (dashboard) | home VM |
-| `biblioteka.vafla.eu` | Calibre | home VM |
-| `chertezh.vafla.eu` | Homelable | home VM |
-| `webarhiv.vafla.eu` | Archivebox | home VM |
+| `knigi.vafla.eu` | Calibre | home VM |
 | `muzika.vafla.eu` | Feishin (Navidrome frontend) | home VM |
 | `*arr.vafla.eu` | \*arr stack (TBD) | home VM |
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
@@ -437,6 +433,28 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 
 ---
 
+### Implementation order
+
+One at a time, each built end-to-end (app + nginx vhost + Anubis + Authentik outpost +
+DNS record, per its own tier below) and tested before moving to the next:
+
+1. `headplane.vafla.eu` — tier 1
+2. `share.vafla.eu` (Microbin) — tier 0c
+3. `dok.vafla.eu` (Cryptpad) — tier 0c
+4. `stream.vafla.eu` (Owncast) — tier 0c
+5. `knigi.vafla.eu` (Calibre) — tier 1
+6. `homarr.vafla.eu` (Homarr) — tier 1
+7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
+8. `rechnik.vafla.eu` — tier 0b
+9. `git.vafla.eu` (Forgejo) — tier 0c
+10. `vafla.eu` `/_matrix` (Matrix) — tier 0c
+11. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0c) — needs planning first
+12. `tube.vafla.eu` (Peertube) — tier 0c
+13. `media.vafla.eu` (Immich) — tier 0c
+14. `muzika.vafla.eu` (Feishin/Navidrome) — tier 1
+
+---
+
 ## 13. VPS setup plan
 
 ### Domain / service list
@@ -450,8 +468,6 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 | `bachkali.vafla.eu` | 0b | Gatus | Stage 1 ✓ |
 | `mc.vafla.eu` | 0b | Static page | Stage 5 |
 | `map.mc.vafla.eu` | 0b | Bluemap | Stage 5 |
-| `radio-spektar.vafla.eu` | 0b | Static web page | Stage 5 |
-| `recepti.vafla.eu` | 0b | Static web page | Stage 5 |
 | `rechnik.vafla.eu` | 0b | TBD | Stage 5 |
 | `share.vafla.eu` | 0c | Microbin | Stage 5 |
 | `git.vafla.eu` | 0c | Forgejo | Stage 5 |
@@ -466,9 +482,7 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 | Record | Tier | Service |
 |---|---|---|
 | `homarr.vafla.eu` | 1 | Homarr |
-| `biblioteka.vafla.eu` | 1 | Calibre |
-| `chertezh.vafla.eu` | 1 | Homelable |
-| `webarhiv.vafla.eu` | 1 | Archivebox |
+| `knigi.vafla.eu` | 1 | Calibre |
 | `muzika.vafla.eu` | 1 | Feishin (Navidrome) |
 | `matrix.vafla.eu` | 0c | Matrix (also needs deSEC for `/_matrix`) |
 | `*arr.vafla.eu` | 1 | \*arr stack (TBD) |
@@ -476,12 +490,8 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 | `headplane.vafla.eu` | 1 | Headplane — VPS-local backend |
 | `proxmox.vafla.eu` | 1 | Proxmox web GUI — tailnet only, Authentik, no Anubis; nginx → Proxmox baremetal tailscale IP:8006 |
 
-**Technitium records — direct machine SSH** (→ each machine's own tailscale IP, bypass nginx entirely):
-
-| Record | Resolves to | Purpose |
-|---|---|---|
-| `baremetalvm.vafla.eu` | Proxmox baremetal tailscale IP | SSH to Proxmox host — no deSEC record |
-| `hsvm.vafla.eu` | home VM tailscale IP | SSH to home VM — no deSEC record |
+SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
+(`100.64.0.4`, `100.64.0.5`) — no dedicated SSH subdomain needed.
 
 ---
 
@@ -567,27 +577,26 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
 
 #### Proxmox host basics
 
-- [ ] **BIOS**: set AC Power Loss → **Last State** (not Always On) — required for UPS auto-boot
+- [x] **BIOS**: AC Power Loss → **Last State**
 - [x] Install Tailscale on Proxmox Debian host (`apt install tailscale` — needed the
       official Tailscale apt repo first, not in Debian's default repos);
       registered with Headscale — `100.64.0.4`
 - [x] Add Technitium record: `proxmox.vafla.eu` → VPS tailscale IP (`100.64.0.1`)
-- [ ] Add Technitium record: `baremetalvm.vafla.eu` → Proxmox baremetal tailscale IP
-      (direct SSH, not yet added)
 - [x] Add nginx virtualHost for `proxmox.vafla.eu` on VPS — **no Authentik** (deliberate
       exception, see §9/§12), proxyWebsockets, proxyPass → `100.64.0.4:8006`,
       `proxy_ssl_verify off` (Proxmox serves its own self-signed cert)
 - [x] Configure SSH on Proxmox baremetal: listens on tailnet IP (`100.64.0.4`) + local LAN IP
       (`192.168.100.100`); key-only, `PermitRootLogin = "prohibit-password"`
-- [ ] Set each VM: Options → **Start at boot = Yes** — VMs auto-start after host boots
-      (this makes the UPS power-restore cycle fully automatic). Applies to `homeserver` now.
+- [x] Set each VM: Options → **Start at boot = Yes**
 
 #### UPS + NUT
 
-- [ ] Install NUT (`apt install nut`); deploy configs from `notes/ups/setup.md`:
+- [~] Install NUT (`apt install nut`); deploy configs from `notes/ups/setup.md`:
       copy `/etc/nut/{nut.conf,ups.conf,upsd.conf,upsd.users,upsmon.conf,upssched.conf}`;
       copy `notes/ups/shutdown.sh` → `/etc/nut/upssched-cmd`; `chmod +x /etc/nut/upssched-cmd`;
       `systemctl enable --now nut-server nut-monitor`; verify with `upsc ups@localhost`
+      — attempted, didn't work, left unresolved
+
 #### ZFS datasets + storage
 
 - [x] ~~Add `kashon01` pool as Proxmox storage backend~~ — **decided unnecessary**. VM
@@ -681,11 +690,10 @@ tailscale up --login-server https://headscale.vafla.eu
 # then on VPS: headscale nodes register --user koko --key <key>
 ```
 
-Add Technitium records:
-- `proxmox.vafla.eu` → VPS tailscale IP — nginx proxies to Proxmox baremetal `:8006`, behind Authentik (`proxyWebsockets = true` required for the console)
-- `baremetalvm.vafla.eu` → Proxmox baremetal tailscale IP — direct SSH only
+Technitium record: `proxmox.vafla.eu` → VPS tailscale IP — nginx proxies to Proxmox
+baremetal `:8006`, no Authentik (`proxyWebsockets = true` required for the console).
 
-Access GUI at `https://proxmox.vafla.eu` on the tailnet (tier-1, Authentik gated).
+Access GUI at `https://proxmox.vafla.eu` on the tailnet.
 
 #### Step 2 — NUT on Proxmox baremetal (Debian, `apt`)
 
@@ -786,7 +794,7 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 |---|---|---|
 | Tailscale | Proxmox baremetal (apt) + each VM | tailnet |
 | Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`), **no Authentik** (exception) |
-| SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`baremetalvm.vafla.eu`) + local LAN IP |
+| SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`100.64.0.4`) + local LAN IP |
 | SSH — home VM | `homeserver` | tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`) |
 | UPS USB | Direct to Proxmox baremetal | local USB on host |
 | NUT server | Proxmox baremetal (apt) | bridge subnet (port 3493) |

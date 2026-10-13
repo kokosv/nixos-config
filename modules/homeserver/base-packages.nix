@@ -8,6 +8,7 @@
       ranger
       file
       btop
+      dig
     ];
   };
 }

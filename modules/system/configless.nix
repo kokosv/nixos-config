@@ -3,8 +3,11 @@
 
   config.nixos.configless = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
+
+      # network
       curl
       wget
+      dig
 
       # wireless daemon
       iwd

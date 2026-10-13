@@ -9,6 +9,7 @@
       file
       btop
       fail2ban
+      dig
     ];
   };
 }

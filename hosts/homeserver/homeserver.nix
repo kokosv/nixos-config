@@ -9,6 +9,7 @@
       basePackages
       technitium
       authentik
+      enclosed
     ]) ++ [
       ./_homeserver/hardware-configuration.nix
       ./_homeserver/disko.nix
@@ -65,6 +66,10 @@
           package = inputs.nixpkgs.legacyPackages.x86_64-linux.nixVersions.stable;
           extraOptions = "experimental-features = nix-command flakes";
           optimise.automatic = true;
+          gc = {
+            automatic = true;
+            options = "--delete-older-than 15d";
+          };
         };
 
         system.stateVersion = "26.05";
