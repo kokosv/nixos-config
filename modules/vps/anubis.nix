@@ -9,6 +9,56 @@
     # nginx needs to read the anubis unix sockets
     users.users.nginx.extraGroups = [ "anubis" ];
 
+    # DIFFICULTY=4 alone does nothing once useDefaultBotRules pulls in Anubis's
+    # built-in weight-threshold tiers — those hardcode their own per-tier difficulty
+    # and override the global setting. Normal browsers land in "moderate-suspicion"
+    # (weight 10-20), which defaults to difficulty 2. Override the whole tier list
+    # here, globally, to bump that to 4 — same structure as Anubis's own defaults,
+    # just with moderate-suspicion raised.
+    services.anubis.defaultOptions.policy.settings.thresholds = [
+      {
+        name = "minimal-suspicion";
+        expression = "weight <= 0";
+        action = "ALLOW";
+      }
+      {
+        name = "mild-suspicion";
+        expression.all = [ "weight > 0" "weight < 10" ];
+        action = "CHALLENGE";
+        challenge = {
+          algorithm = "metarefresh";
+          difficulty = 1;
+        };
+      }
+      {
+        name = "moderate-suspicion";
+        expression.all = [ "weight >= 10" "weight < 20" ];
+        action = "CHALLENGE";
+        challenge = {
+          algorithm = "fast";
+          difficulty = 4; # was 2 in Anubis's built-in default
+        };
+      }
+      {
+        name = "mild-proof-of-work";
+        expression.all = [ "weight >= 20" "weight < 30" ];
+        action = "CHALLENGE";
+        challenge = {
+          algorithm = "fast";
+          difficulty = 4;
+        };
+      }
+      {
+        name = "extreme-suspicion";
+        expression = "weight >= 30";
+        action = "CHALLENGE";
+        challenge = {
+          algorithm = "fast";
+          difficulty = 6;
+        };
+      }
+    ];
+
     # ── Gatus (bachkali.vafla.eu) ───────────────────────────────────────────
     services.anubis.instances.gatus = {
       settings = {
