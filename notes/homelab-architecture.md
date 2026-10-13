@@ -124,7 +124,7 @@ Country-level IP blocking on all **public-tier** nginx virtualHosts. Headscale e
 **Database:** db-ip.com free MMDB (no registration). Downloaded monthly via systemd timer
 to `/var/lib/geoip/dbip-country-lite.mmdb`. `auto_reload 1d` hot-reloads without restart.
 
-**Blocked:** US, CN, RU, UA, BY, GB.
+**Blocked:** US, CN, RU, UA, BY, GB, IL.
 
 ```nginx
 geoip2 /var/lib/geoip/dbip-country-lite.mmdb {
@@ -133,7 +133,7 @@ geoip2 /var/lib/geoip/dbip-country-lite.mmdb {
 }
 map $geoip2_country_code $geo_blocked {
   default 0;
-  US 1; CN 1; RU 1; UA 1; BY 1; GB 1;
+  US 1; CN 1; RU 1; UA 1; BY 1; GB 1; IL 1;
 }
 ```
 
@@ -178,11 +178,30 @@ services.fail2ban = {
   bantime-increment.enable = true;
   jails = {
     sshd.settings = { enabled = true; port = "22"; filter = "sshd"; maxretry = 4; };
-    nginx-http-auth.settings = { enabled = true; filter = "nginx-http-auth"; logpath = "/var/log/nginx/error.log"; };
-    nginx-botsearch.settings = { enabled = true; filter = "nginx-botsearch"; logpath = "/var/log/nginx/access.log"; };
+    nginx-http-auth.settings = { enabled = true; filter = "nginx-http-auth"; logpath = "/var/log/nginx/error.log"; backend = "polling"; };
+    nginx-botsearch.settings = { enabled = true; filter = "nginx-botsearch"; logpath = "/var/log/nginx/access.log"; backend = "polling"; };
+    nginx-enclosed = {
+      settings = { enabled = true; logpath = "/var/log/nginx/access.log"; backend = "polling"; maxretry = 5; };
+      filter.Definition.failregex = ''^<HOST> .*"POST /api/auth/login HTTP/\d\.\d" 401'';
+    };
   };
 };
 ```
+
+**`backend = "polling"` is required on every nginx-based jail.** NixOS's fail2ban
+defaults to the systemd-journal backend, which only sees what a service prints to its
+own stdout/stderr — nginx logs to files (`access.log`/`error.log`) instead, so the
+journal backend silently never matches anything. This affected `nginx-http-auth` and
+`nginx-botsearch` from the start (both sat at 0 total failed despite real bot traffic)
+until caught during `nginx-enclosed`'s first live test. `sshd` is unaffected — NixOS's
+openssh genuinely logs via journald, so the default backend is correct there.
+
+**Per-app custom jails** — for any service exempted from Authentik with its own login
+(e.g. Enclosed), add a jail watching `access.log` for that app's specific
+`<login path> → <failure status>` signature, same pattern as `nginx-enclosed` above.
+Works because nginx logs every proxied response's status regardless of backend — no
+need for fail2ban to see anything on homeserver itself. Confirm the exact path/status
+from a real failed login attempt before writing the regex, don't guess it.
 
 ---
 
@@ -195,6 +214,14 @@ Socket path format: `BIND = "/run/anubis/anubis-<name>/anubis.sock"` (no `unix:`
 nginx proxyPass uses `http://unix:/run/anubis/anubis-<name>/anubis.sock`).
 
 nginx must be in the `anubis` group: `users.users.nginx.extraGroups = [ "anubis" ];`
+
+**Difficulty**: the global `DIFFICULTY` setting is just a fallback — Anubis's built-in
+weight-threshold tiers (`useDefaultBotRules`) hardcode their own per-tier difficulty and
+override it. Normal browsers land in the "moderate-suspicion" tier, which defaults to
+difficulty 2 regardless of `DIFFICULTY`. Overridden globally via
+`services.anubis.defaultOptions.policy.settings.thresholds` in `modules/vps/anubis.nix`
+to bump that tier to 4. Not a hard cap either way — Anubis's own default goes to 6 for
+its highest tier.
 
 **Exemptions:**
 - `headscale.vafla.eu` — Tailscale API clients can't complete PoW challenges
@@ -369,6 +396,7 @@ deSEC A record → VPS public IP. Static/read-only — no login wall needed.
 | `bachkali.vafla.eu` | Gatus (status page) | VPS localhost:8081 |
 | `rechnik.vafla.eu` | TBD | home VM |
 | `auth.vafla.eu` | Authentik SSO login portal — **deployed**, no Authentik wrapper (circular) | home VM (`100.64.0.5:9000`) |
+| `taina.vafla.eu` | Enclosed (secure note sharing) — no Authentik, own account-gated creation | home VM (`100.64.0.5:8787`) |
 
 ### Tier 0c — public, Anubis + Authentik + fail2ban
 
@@ -376,14 +404,13 @@ deSEC A record → VPS public IP. Apps that require a login wall.
 
 | Subdomain | Service | Backend |
 |---|---|---|
-| `share.vafla.eu` | Microbin (paste / file share) | home VM |
 | `git.vafla.eu` | Forgejo | home VM |
-| `stream.vafla.eu` | Owncast | home VM |
-| `dok.vafla.eu` | Cryptpad | home VM |
+| `nazhivo.vafla.eu` | Owncast | home VM |
+| `dok.vafla.eu` | Cryptpad — registration closed after creating one admin account; single-user usage, sharing documents via direct link only, not open to other registered users | home VM |
 | `tube.vafla.eu` | Peertube | home VM |
 | `tv.vafla.eu` | Jellyfin | home VM |
 | `media.vafla.eu` | Immich | home VM |
-| `vafla.eu` | Matrix homeserver (tuwunel, `/_matrix` path) | home VM |
+| `vafla.eu` | Matrix homeserver (tuwunel, `/_matrix` path) — needs LiveKit for calls | home VM |
 
 ### Tier 1 — tailnet-only, Authentik + fail2ban (no Anubis)
 
@@ -393,7 +420,7 @@ No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tail
 |---|---|---|
 | `homarr.vafla.eu` | Homarr (dashboard) | home VM |
 | `knigi.vafla.eu` | Calibre | home VM |
-| `muzika.vafla.eu` | Feishin (Navidrome frontend) | home VM |
+| `muzika.vafla.eu` | Navidrome (server) — clients: Feishin (desktop, native app, not hosted), Wavio (Android, Subsonic API) | home VM |
 | `*arr.vafla.eu` | \*arr stack (TBD) | home VM |
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
 | `headplane.vafla.eu` | Headplane (Headscale web UI) | VPS localhost:3000 |
@@ -439,19 +466,19 @@ One at a time, each built end-to-end (app + nginx vhost + Anubis + Authentik out
 DNS record, per its own tier below) and tested before moving to the next:
 
 1. `headplane.vafla.eu` — tier 1
-2. `share.vafla.eu` (Microbin) — tier 0c
+2. `taina.vafla.eu` (Enclosed) — tier 0b
 3. `dok.vafla.eu` (Cryptpad) — tier 0c
-4. `stream.vafla.eu` (Owncast) — tier 0c
+4. `nazhivo.vafla.eu` (Owncast) — tier 0c
 5. `knigi.vafla.eu` (Calibre) — tier 1
 6. `homarr.vafla.eu` (Homarr) — tier 1
 7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
 8. `rechnik.vafla.eu` — tier 0b
 9. `git.vafla.eu` (Forgejo) — tier 0c
-10. `vafla.eu` `/_matrix` (Matrix) — tier 0c
+10. `vafla.eu` `/_matrix` (Matrix) — tier 0c, needs LiveKit deployed alongside for calls
 11. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0c) — needs planning first
 12. `tube.vafla.eu` (Peertube) — tier 0c
 13. `media.vafla.eu` (Immich) — tier 0c
-14. `muzika.vafla.eu` (Feishin/Navidrome) — tier 1
+14. `muzika.vafla.eu` (Navidrome) — tier 1
 
 ---
 
@@ -469,9 +496,9 @@ DNS record, per its own tier below) and tested before moving to the next:
 | `mc.vafla.eu` | 0b | Static page | Stage 5 |
 | `map.mc.vafla.eu` | 0b | Bluemap | Stage 5 |
 | `rechnik.vafla.eu` | 0b | TBD | Stage 5 |
-| `share.vafla.eu` | 0c | Microbin | Stage 5 |
+| `taina.vafla.eu` | 0b | Enclosed | Stage 5 |
 | `git.vafla.eu` | 0c | Forgejo | Stage 5 |
-| `stream.vafla.eu` | 0c | Owncast | Stage 5 |
+| `nazhivo.vafla.eu` | 0c | Owncast | Stage 5 |
 | `dok.vafla.eu` | 0c | Cryptpad | Stage 5 |
 | `tube.vafla.eu` | 0c | Peertube | Stage 5 |
 | `tv.vafla.eu` | 0c | Jellyfin | Stage 5 |
@@ -483,7 +510,7 @@ DNS record, per its own tier below) and tested before moving to the next:
 |---|---|---|
 | `homarr.vafla.eu` | 1 | Homarr |
 | `knigi.vafla.eu` | 1 | Calibre |
-| `muzika.vafla.eu` | 1 | Feishin (Navidrome) |
+| `muzika.vafla.eu` | 1 | Navidrome |
 | `matrix.vafla.eu` | 0c | Matrix (also needs deSEC for `/_matrix`) |
 | `*arr.vafla.eu` | 1 | \*arr stack (TBD) |
 | `dns.vafla.eu` | 1 | Technitium web UI |
@@ -820,7 +847,7 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 - **DNSSEC via deSEC**: auto-signs all zones. DS record at ClouDNS registrar (SHA-256 only —
   ClouDNS doesn't support SHA-384). systemd-resolved validates client-side.
 - **Geo-blocking via db-ip.com**: MaxMind GeoLite2 requires registration; db-ip.com is
-  free with no account. Monthly systemd timer for updates. Blocked: US, CN, RU, UA, BY, GB.
+  free with no account. Monthly systemd timer for updates. Blocked: US, CN, RU, UA, BY, GB, IL.
 - **Anubis on public HTTP services only, except headscale**: headscale exempt (API clients
   fail PoW). Tailnet-only services exempt — unreachable from internet.
 - **Authentik on all services except headscale and tier-0b static**: static/read-only
