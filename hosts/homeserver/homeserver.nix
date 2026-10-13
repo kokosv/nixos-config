@@ -40,14 +40,23 @@
 
         services.openssh = {
           enable = true;
-          listenAddresses = [
-            { addr = "100.64.0.5"; }
-            { addr = "192.168.100.56"; }
-          ];
           settings = {
             PasswordAuthentication = false;
             PermitRootLogin = "prohibit-password";
           };
+        };
+
+        fileSystems."/d01-archiv" = {
+          device = "d01-archiv";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d02-lichni" = {
+          device = "d02-lichni";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d04-mc" = {
+          device = "d04-mc";
+          fsType = "virtiofs";
         };
 
         nixpkgs.config.allowUnfree = true;
