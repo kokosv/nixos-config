@@ -10,6 +10,7 @@
       technitium
       enclosed
       cryptpad
+      owncast
     ]) ++ [
       ./_homeserver/hardware-configuration.nix
       ./_homeserver/disko.nix

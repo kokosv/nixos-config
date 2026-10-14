@@ -276,6 +276,8 @@ Current secrets:
 - `secrets/ssh-private-key.age` — kt480 SSH private key
 - `secrets/enclosed-env.age` — `AUTHENTICATION_JWT_SECRET=...` +
   `AUTHENTICATION_USERS=...` (homeserver)
+- `secrets/nazhivo-htpasswd.age` — nginx `auth_basic_user_file` for `nazhivo.vafla.eu`
+  (`user:<apr1-hash>`, VPS)
 
 `homeserver` is a registered agenix host (in `allHosts` in `agenix-rules.nix`).
 
@@ -332,7 +334,7 @@ own login, protected by fail2ban (§7).
 | `rechnik.vafla.eu` | TBD | home VM |
 | `taina.vafla.eu` | Enclosed (secure note sharing) — **deployed**, own account-gated creation | home VM (`100.64.0.5:8787`) |
 | `git.vafla.eu` | Forgejo | home VM |
-| `nazhivo.vafla.eu` | Owncast | home VM |
+| `nazhivo.vafla.eu` | Owncast — **deployed**. No hardware encoding (VM has no real GPU, software x264 only); 3 re-encoded quality variants (1080p/720p/480p, sized for ~5 viewers). Directory listing, search indexing, and Fediverse federation all disabled. nginx `auth_basic` in front of the whole vhost (`secrets/nazhivo-htpasswd.age`) — single shared login, not open to random visitors | home VM (`100.64.0.5:8080`) |
 | `dok.vafla.eu` | Cryptpad — **deployed**. Anonymous pad creation/storage blocked (`customize/application_config.js`). Registration closes via admin panel after creating one account — manual, can't be pre-configured. Single-user usage, sharing via direct link only | home VM (`100.64.0.5:3000`) |
 | `dokument.vafla.eu` | Cryptpad sandbox domain (iframe origin isolation, required by Cryptpad) — same backend as `dok.vafla.eu`, **no Anubis** (a separate PoW challenge breaks the iframe load — Anubis's challenge page lacks the cross-origin headers CryptPad expects, surfaces as a Firefox `NS_ERROR_DOM_COEP_FAILED`) | home VM (`100.64.0.5:3000`) |
 | `tube.vafla.eu` | Peertube | home VM |
@@ -399,7 +401,7 @@ own tier below) and tested before moving to the next:
 1. `headplane.vafla.eu` — tier 1 ✓ deployed
 2. `taina.vafla.eu` (Enclosed) — tier 0b ✓ deployed
 3. `dok.vafla.eu` + `dokument.vafla.eu` (Cryptpad) — tier 0b ✓ deployed
-4. `nazhivo.vafla.eu` (Owncast) — tier 0b
+4. `nazhivo.vafla.eu` (Owncast) — tier 0b ✓ deployed
 5. `knigi.vafla.eu` (Calibre) — tier 1
 6. `homarr.vafla.eu` (Homarr) — tier 1
 7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
@@ -429,7 +431,7 @@ own tier below) and tested before moving to the next:
 | `rechnik.vafla.eu` | 0b | TBD | Stage 5 |
 | `taina.vafla.eu` | 0b | Enclosed | Stage 5 ✓ |
 | `git.vafla.eu` | 0b | Forgejo | Stage 5 |
-| `nazhivo.vafla.eu` | 0b | Owncast | Stage 5 |
+| `nazhivo.vafla.eu` | 0b | Owncast | Stage 5 ✓ |
 | `dok.vafla.eu` | 0b | Cryptpad | Stage 5 ✓ |
 | `dokument.vafla.eu` | 0b | Cryptpad sandbox domain | Stage 5 ✓ |
 | `tube.vafla.eu` | 0b | Peertube | Stage 5 |

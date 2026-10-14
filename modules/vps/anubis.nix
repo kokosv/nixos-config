@@ -4,10 +4,15 @@
   # All public-tier nginx vhosts live here alongside their Anubis instance.
   # Exempt from Anubis: headscale (API clients fail PoW), headplane (tailnet-only).
   # When adding a new public service: add an instances.<name> entry + virtualHost below.
-  config.vps.anubis = { ... }: {
+  config.vps.anubis = { config, ... }: {
 
     # nginx needs to read the anubis unix sockets
     users.users.nginx.extraGroups = [ "anubis" ];
+
+    age.secrets.nazhivo-htpasswd = {
+      file = ../../secrets/nazhivo-htpasswd.age;
+      owner = "nginx";
+    };
 
     # DIFFICULTY=4 alone does nothing once useDefaultBotRules pulls in Anubis's
     # built-in weight-threshold tiers — those hardcode their own per-tier difficulty
@@ -93,6 +98,27 @@
         proxyPass = "http://unix:/run/anubis/anubis-taina/anubis.sock";
         extraConfig = ''
           if ($geo_blocked) { return 403; }
+        '';
+      };
+    };
+
+    # ── Owncast (nazhivo.vafla.eu) ───────────────────────────────────────────
+    services.anubis.instances.nazhivo = {
+      settings = {
+        TARGET = "http://100.64.0.5:8080"; # owncast on homeserver, over tailnet
+        BIND = "/run/anubis/anubis-nazhivo/anubis.sock";
+        DIFFICULTY = 4;
+      };
+    };
+    services.nginx.virtualHosts."nazhivo.vafla.eu" = {
+      forceSSL = true;
+      useACMEHost = "vafla.eu";
+      locations."/" = {
+        proxyPass = "http://unix:/run/anubis/anubis-nazhivo/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+          auth_basic "nazhivo.vafla.eu";
+          auth_basic_user_file ${config.age.secrets.nazhivo-htpasswd.path};
         '';
       };
     };

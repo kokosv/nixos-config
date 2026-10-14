@@ -73,9 +73,11 @@
           {
             name = "Owncast";
             group = "public";
-            enabled = false;
+            enabled = true;
             url = "https://nazhivo.vafla.eu";
             interval = "5m";
+            # vhost is behind nginx auth_basic — credentials needed or every check 401s.
+            headers.Authorization = "Basic dXNlcjozYmRiODA3OWM1MWUyYTRkZmZkMDdjMmJkYjQzYmU0Yg==";
             conditions = [ "[STATUS] == 200" ];
           }
           {
