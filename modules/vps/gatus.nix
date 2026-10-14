@@ -106,7 +106,7 @@
           {
             name = "Cryptpad";
             group = "Home Server";
-            enabled = false;
+            enabled = true;
             url = "https://dok.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];

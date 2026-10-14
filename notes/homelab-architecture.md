@@ -74,6 +74,8 @@ Self-host a stack of services from a **home server**, made publicly reachable th
 - **ACME:** Let's Encrypt DNS-01 via lego (`dnsProvider = "desec"`)
 - **Cert:** `*.vafla.eu` + `vafla.eu` + `map.mc.vafla.eu` — one wildcard covers all subdomains
 - **DNSSEC:** deSEC auto-signs; DS record (SHA-256) added at ClouDNS registrar
+- **HSTS:** set site-wide via `commonHttpConfig` in `modules/vps/nginx.nix` (not included
+  by `recommendedTlsSettings`, has to be added explicitly)
 
 During NS migration or stale-cache periods, temporarily use `1.1.1.1` to avoid stale NS.
 Verify DNSSEC with: `dig +dnssec vafla.eu @86.54.11.100` — look for `ad` flag.
@@ -325,7 +327,8 @@ own login, protected by fail2ban (§7).
 | `taina.vafla.eu` | Enclosed (secure note sharing) — **deployed**, own account-gated creation | home VM (`100.64.0.5:8787`) |
 | `git.vafla.eu` | Forgejo | home VM |
 | `nazhivo.vafla.eu` | Owncast | home VM |
-| `dok.vafla.eu` | Cryptpad — registration closed after creating one admin account; single-user usage, sharing documents via direct link only, not open to other registered users | home VM |
+| `dok.vafla.eu` | Cryptpad — **deployed**. Anonymous pad creation/storage blocked (`customize/application_config.js`). Registration closes via admin panel after creating one account — manual, can't be pre-configured. Single-user usage, sharing via direct link only | home VM (`100.64.0.5:3000`) |
+| `dokument.vafla.eu` | Cryptpad sandbox domain (iframe origin isolation, required by Cryptpad) — same backend as `dok.vafla.eu`, **no Anubis** (a separate PoW challenge breaks the iframe load — Anubis's challenge page lacks the cross-origin headers CryptPad expects, surfaces as a Firefox `NS_ERROR_DOM_COEP_FAILED`) | home VM (`100.64.0.5:3000`) |
 | `tube.vafla.eu` | Peertube | home VM |
 | `tv.vafla.eu` | Jellyfin | home VM |
 | `media.vafla.eu` | Immich | home VM |
@@ -389,7 +392,7 @@ own tier below) and tested before moving to the next:
 
 1. `headplane.vafla.eu` — tier 1 ✓ deployed
 2. `taina.vafla.eu` (Enclosed) — tier 0b ✓ deployed
-3. `dok.vafla.eu` (Cryptpad) — tier 0b
+3. `dok.vafla.eu` + `dokument.vafla.eu` (Cryptpad) — tier 0b ✓ deployed
 4. `nazhivo.vafla.eu` (Owncast) — tier 0b
 5. `knigi.vafla.eu` (Calibre) — tier 1
 6. `homarr.vafla.eu` (Homarr) — tier 1
@@ -421,7 +424,8 @@ own tier below) and tested before moving to the next:
 | `taina.vafla.eu` | 0b | Enclosed | Stage 5 ✓ |
 | `git.vafla.eu` | 0b | Forgejo | Stage 5 |
 | `nazhivo.vafla.eu` | 0b | Owncast | Stage 5 |
-| `dok.vafla.eu` | 0b | Cryptpad | Stage 5 |
+| `dok.vafla.eu` | 0b | Cryptpad | Stage 5 ✓ |
+| `dokument.vafla.eu` | 0b | Cryptpad sandbox domain | Stage 5 ✓ |
 | `tube.vafla.eu` | 0b | Peertube | Stage 5 |
 | `tv.vafla.eu` | 0b | Jellyfin | Stage 5 |
 | `media.vafla.eu` | 0b | Immich | Stage 5 |
@@ -597,6 +601,12 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 - `nixos-rebuild switch --target-host` activating a network change (DHCP → static) can
   kill the SSH session mid-activation. Recovery: Proxmox console → `ip addr add`/
   `ip route add` manually, then retry.
+- Seeding a config file into a service's `StateDirectory` when it runs with
+  `DynamicUser=true` + `confinement.enable=true` (e.g. Cryptpad): `systemd.tmpfiles.rules`
+  silently no-ops ("unsafe path transition" in the journal) because tmpfiles refuses to
+  manage a path nested inside a directory it doesn't own. Use
+  `systemd.services.<name>.serviceConfig.ExecStartPre` instead (runs as the same
+  DynamicUser, inside the same chroot, closure auto-added to the confinement bind list).
 
 ### Proxmox host on tailnet + UPS plan
 

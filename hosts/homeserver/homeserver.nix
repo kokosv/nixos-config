@@ -9,6 +9,7 @@
       basePackages
       technitium
       enclosed
+      cryptpad
     ]) ++ [
       ./_homeserver/hardware-configuration.nix
       ./_homeserver/disko.nix

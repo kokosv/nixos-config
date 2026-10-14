@@ -15,6 +15,8 @@
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
       commonHttpConfig = ''
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
         geoip2 /var/lib/geoip/dbip-country-lite.mmdb {
           auto_reload 1d;
           $geoip2_country_code default=XX country iso_code;

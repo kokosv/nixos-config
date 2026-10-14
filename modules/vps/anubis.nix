@@ -97,6 +97,55 @@
       };
     };
 
+    # ── Cryptpad (dok.vafla.eu + sandbox dokument.vafla.eu) ─────────────────
+    # Two domains required by Cryptpad for iframe origin isolation — both serve
+    # the same backend. Websocket path bypasses Anubis (already-authenticated
+    # continuation of a page load that already passed the challenge).
+    services.anubis.instances.dok = {
+      settings = {
+        TARGET = "http://100.64.0.5:3000"; # cryptpad on homeserver, over tailnet
+        BIND = "/run/anubis/anubis-dok/anubis.sock";
+        DIFFICULTY = 4;
+      };
+    };
+    services.nginx.virtualHosts."dok.vafla.eu" = {
+      forceSSL = true;
+      useACMEHost = "vafla.eu";
+      locations."/" = {
+        proxyPass = "http://unix:/run/anubis/anubis-dok/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+        '';
+      };
+      locations."/cryptpad_websocket" = {
+        proxyPass = "http://100.64.0.5:3003";
+        proxyWebsockets = true;
+      };
+    };
+
+    # No Anubis here — this domain is only ever loaded as a background iframe
+    # source by dok.vafla.eu, not visited directly. A separate, independent PoW
+    # challenge on it breaks the iframe load entirely: Anubis's challenge page
+    # doesn't carry the cross-origin headers CryptPad expects from its sandbox
+    # iframe, which surfaces as a COEP failure in the browser.
+    services.nginx.virtualHosts."dokument.vafla.eu" = {
+      forceSSL = true;
+      useACMEHost = "vafla.eu";
+      locations."/" = {
+        proxyPass = "http://100.64.0.5:3000";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+          # Direct top-level visits (not loaded as an iframe by dok.vafla.eu)
+          # redirect to the real domain instead of serving a second app instance.
+          if ($http_sec_fetch_dest = "document") { return 302 https://dok.vafla.eu/; }
+        '';
+      };
+      locations."/cryptpad_websocket" = {
+        proxyPass = "http://100.64.0.5:3003";
+        proxyWebsockets = true;
+      };
+    };
+
     # ── future public services go here ──────────────────────────────────────
     # services.anubis.instances.<name> = {
     #   settings = {
