@@ -115,6 +115,12 @@ services.headscale = {
 > from tailnet clients — never the tailscale IP. DERP/STUN bootstrap needs a real
 > internet path; pointing it at `100.64.x.x` is a chicken-and-egg deadlock.
 
+> nginx's `recommendedProxySettings` sets a global 60s `proxy_read_timeout`, which kills
+> the long-lived DERP relay connection every minute (clients see this as a recurring
+> "no-derp-connection" health warning). Fixed with a dedicated `locations."/derp"` block
+> on `headscale.vafla.eu` (`modules/vps/headscale.nix`) with `proxy_read_timeout 1d;` /
+> `proxy_send_timeout 1d;`, leaving the rest of the API at the normal 60s.
+
 ---
 
 ## 5. Geo-blocking

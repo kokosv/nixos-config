@@ -32,6 +32,18 @@
         proxyPass = "http://127.0.0.1:8080";
         proxyWebsockets = true;
       };
+      # DERP relay connections are long-lived, not request/response — the global
+      # recommendedProxySettings 60s proxy_read_timeout was killing them every
+      # minute, forcing constant client reconnects (seen as "no-derp-connection"
+      # health warnings on tailnet devices).
+      locations."/derp" = {
+        proxyPass = "http://127.0.0.1:8080";
+        proxyWebsockets = true;
+        extraConfig = ''
+          proxy_read_timeout 1d;
+          proxy_send_timeout 1d;
+        '';
+      };
     };
   };
 }
