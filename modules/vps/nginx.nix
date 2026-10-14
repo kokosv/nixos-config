@@ -31,6 +31,16 @@
           IL      1;
         }
       '';
+
+      # Catch-all for any Host header that doesn't match a configured vhost —
+      # without this, nginx silently falls through to whichever vhost is
+      # declared first (e.g. a removed/typo'd domain would serve Gatus's content).
+      virtualHosts."_default" = {
+        default = true;
+        forceSSL = true;
+        useACMEHost = "vafla.eu";
+        locations."/".return = "444"; # close the connection, no response at all
+      };
     };
   };
 }

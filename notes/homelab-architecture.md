@@ -220,6 +220,12 @@ nginx proxyPass uses `http://unix:/run/anubis/anubis-<name>/anubis.sock`).
 
 nginx must be in the `anubis` group: `users.users.nginx.extraGroups = [ "anubis" ];`
 
+**Catch-all default vhost** (`modules/vps/nginx.nix`, `virtualHosts."_default"`, `default =
+true;`): any Host header that doesn't match a configured vhost gets `444` (connection
+closed) instead of silently falling through to whichever vhost is declared first. Without
+this, a removed or typo'd domain would serve whatever service happens to be first in the
+config (bit us once with `auth.vafla.eu` falling through to Gatus after removal).
+
 **Difficulty**: the global `DIFFICULTY` setting is just a fallback — Anubis's built-in
 weight-threshold tiers (`useDefaultBotRules`) hardcode their own per-tier difficulty and
 override it. Normal browsers land in the "moderate-suspicion" tier, which defaults to
