@@ -5,7 +5,7 @@
 > future version of me) can pick up context immediately without re-deriving it from scratch.
 >
 > Note: this doc intentionally covers **infrastructure only** (proxy, TLS, tailnet,
-> firewall, bot protection, SSO plumbing) — not specific applications.
+> firewall, bot protection, brute-force protection) — not specific applications.
 
 ---
 
@@ -20,14 +20,13 @@ Self-host a stack of services from a **home server**, made publicly reachable th
   co-located on the VPS.
 - **Anubis** (anti-scraper/bot proof-of-work challenge) in front of all public HTTP services
   except `headscale.vafla.eu` (Tailscale API clients fail PoW challenges). Tailnet-only
-  services are exempt — they're unreachable from the internet and Authentik handles auth.
-- **Authentik** as the SSO/forward-auth layer in front of all services that need a login
-  wall: public-facing apps (git, media, etc.) and all tailnet-only private services.
-  Static/read-only public services (status, maps, MC, landing pages) are Anubis-only.
-  `headscale.vafla.eu` is exempt from both. **fail2ban runs on the VPS** watching nginx
-  access logs — banning real attacker IPs at the VPS firewall before they reach the tailnet.
-  (Running fail2ban on the home VM would be useless: all traffic arrives from the VPS
-  tailscale IP, so banning would block the VPS itself, not the attacker.)
+  services are exempt — they're unreachable from the internet.
+- **No central SSO layer.** Each service uses its own login, if it has one. **fail2ban runs
+  on the VPS** watching nginx access logs for per-service failed-login patterns, banning
+  real attacker IPs at the VPS firewall before they reach the tailnet. (Running fail2ban on
+  the home VM would be useless: all traffic arrives from the VPS tailscale IP, so banning
+  there would block the VPS itself, not the attacker.) A central SSO layer (Authentik) was
+  built and then removed — see §14 for why.
 - Everything declared in **Nix** (NixOS), on a VM hosted under **Proxmox** at home.
 
 ---
@@ -46,12 +45,11 @@ Self-host a stack of services from a **home server**, made publicly reachable th
 │            256GB disk on `fastvm` (dedicated LVM-thin pool,   │
 │            nvme1n1, isolated from boot disk + kashon01 RAID)  │
 │          - Runs MC server too — no separate MC VM             │
-│          - Authentik (native Postgres+Redis, server+worker    │
-│            as OCI/podman containers) — deployed, working       │
 │          - Technitium DNS — deployed, `vafla.eu` zone live    │
+│          - Enclosed (secure note sharing) — deployed          │
 │          - No public ports open. SSH reachable over tailnet   │
 │            and LAN (not tailnet-only, unlike the original     │
-│            plan — see §15)                                    │
+│            plan — see §14)                                    │
 └─────────────────────────────────────────────────────────────┘
                               │
                      Tailscale tunnel (WireGuard)
@@ -137,7 +135,7 @@ map $geoip2_country_code $geo_blocked {
 }
 ```
 
-Add to each public tier-0b/0c virtualHost location:
+Add to each public tier-0b virtualHost location:
 ```nix
 extraConfig = ''if ($geo_blocked) { return 403; }'';
 ```
@@ -162,7 +160,7 @@ services.tailscale.enable = true;
 
 **Home VM ("homeserver"):** no public ports. SSH listens on both `100.64.0.5` (tailnet)
 and `192.168.100.56` (static LAN, gateway `192.168.100.1`) — deliberately not tailnet-only
-like originally planned; see §15 for why. `networking.useDHCP = false`, static address set
+like originally planned; see §14 for why. `networking.useDHCP = false`, static address set
 declaratively so `sshd`'s `listenAddresses` stays valid across reboots.
 
 ---
@@ -176,6 +174,7 @@ enters the VPS — real attacker IPs are only visible there.
 services.fail2ban = {
   enable = true; maxretry = 5; bantime = "1h";
   bantime-increment.enable = true;
+  ignoreIP = [ "100.64.0.0/10" ]; # never ban the tailnet — trusted at the firewall anyway
   jails = {
     sshd.settings = { enabled = true; port = "22"; filter = "sshd"; maxretry = 4; };
     nginx-http-auth.settings = { enabled = true; filter = "nginx-http-auth"; logpath = "/var/log/nginx/error.log"; backend = "polling"; };
@@ -196,12 +195,18 @@ journal backend silently never matches anything. This affected `nginx-http-auth`
 until caught during `nginx-enclosed`'s first live test. `sshd` is unaffected — NixOS's
 openssh genuinely logs via journald, so the default backend is correct there.
 
-**Per-app custom jails** — for any service exempted from Authentik with its own login
-(e.g. Enclosed), add a jail watching `access.log` for that app's specific
+**Per-app custom jails** — for any public service with its own login (none of them sit
+behind a central SSO — see §14), add a jail watching `access.log` for that app's specific
 `<login path> → <failure status>` signature, same pattern as `nginx-enclosed` above.
 Works because nginx logs every proxied response's status regardless of backend — no
 need for fail2ban to see anything on homeserver itself. Confirm the exact path/status
 from a real failed login attempt before writing the regex, don't guess it.
+
+**Self-banning during testing**: repeated manual login testing (e.g. retrying a wrong
+password several times while debugging) looks identical to a brute-force attempt and
+will legitimately trip these jails — that's the system working correctly, not a bug.
+`ignoreIP` only exempts the tailnet; testing from a public IP is still subject to the
+same rules as anyone else. Use `fail2ban-client unban --all` to recover if self-banned.
 
 ---
 
@@ -232,101 +237,16 @@ its highest tier.
 # Tier 0a — headscale (bare)
 nginx (TLS) → headscale
 
-# Tier 0b — public static (Anubis only)
+# Tier 0b — public (Anubis only)
 nginx (TLS) → Anubis → backend
 
-# Tier 0c — public apps (Anubis + Authentik)
-nginx (TLS) → Anubis → Authentik auth_request → backend
-
-# Tier 1 — tailnet-only (Authentik only)
-nginx (TLS, tailscale0) → Authentik auth_request → backend
+# Tier 1 — tailnet-only (no Anubis, no SSO — just the app's own login, if any)
+nginx (TLS, tailscale0) → backend
 ```
 
 ---
 
-## 9. Authentik SSO + fail2ban
-
-**Deployed.** No native NixOS service module exists — only a nixpkgs package. Deployment
-(`modules/homeserver/authentik.nix`): native `services.postgresql` +
-`services.redis.servers.authentik`, with `authentik-server`/`authentik-worker` as
-`--network=host` podman containers (`ghcr.io/goauthentik/server:2025.12.6`) talking to
-Postgres/Redis over `127.0.0.1`.
-
-**Gotchas:**
-- `ensureUsers` can't set a Postgres password declaratively — oneshot service
-  `authentik-postgres-password` runs `ALTER ROLE` from the agenix secret on boot, ordered
-  `after = [ "postgresql.service" "postgresql-setup.service" ]` (user creation happens in
-  the latter unit, not the former).
-- Container runs as UID 1000; with podman `--network=host` that's UID 1000 on the host too
-  — `/var/lib/authentik/{media,templates,certs}` must be `chown 1000:1000`, not root.
-- `akadmin`'s password is random unless `AUTHENTIK_BOOTSTRAP_EMAIL`/`_PASSWORD` env vars
-  are set (agenix secret `authentik-bootstrap.age`). No bootstrap username var exists —
-  login is always `akadmin`.
-
-**Domain-level forward auth** — one provider covers every `*.vafla.eu` subdomain via a
-shared SSO cookie:
-- Provider: Proxy Provider, mode **Forward auth (domain level)**
-- **Authentication URL**: `https://auth.vafla.eu` (externally-reachable hostname, not the
-  internal `100.64.0.5:9000` backend address)
-- **Cookie domain**: `vafla.eu` — must be the parent/apex domain, not `auth.vafla.eu` itself
-- One Application (`vafla.eu`) bound to the embedded outpost — no per-service Application needed
-
-`auth.vafla.eu` is the only door — a separate tailnet-only `authentik.vafla.eu` was removed
-as redundant. Since both led to the same app, `akadmin`'s admin UI (`/if/admin/`) is
-technically reachable via the public `auth.vafla.eu` too, protected by Anubis + credentials
-+ Authentik's own rate-limiting, not a network-level restriction.
-
-Authentik applies to:
-- **Tier 0c** — public apps (Anubis first, then Authentik)
-- **Tier 1** — tailnet-only private services (Authentik only, no Anubis) — **except
-  `proxmox.vafla.eu`**, an explicit exception with no Authentik wrapper (Proxmox has its
-  own login; the added friction was judged unnecessary for a single-admin box)
-
-Exempt: `headscale.vafla.eu`, `auth.vafla.eu` itself (circular), static/read-only public
-services (tier 0b).
-
-**fail2ban** runs on the **VPS**, watching nginx access logs — not on the home VM (see §7).
-
-Reusable nginx snippet (as actually deployed — see `modules/vps/technitium-proxy.nix` for
-a full working example):
-```nix
-locations."/" = {
-  proxyPass = "http://100.64.0.5:<port>"; # or an Anubis socket for tier 0c
-  extraConfig = ''
-    auth_request /outpost.goauthentik.io/auth/nginx;
-    error_page 401 = @authentik_redirect;
-    auth_request_set $auth_cookie $upstream_http_set_cookie;
-    add_header Set-Cookie $auth_cookie;
-    auth_request_set $authentik_username $upstream_http_x_authentik_username;
-    auth_request_set $authentik_groups   $upstream_http_x_authentik_groups;
-    proxy_set_header X-authentik-username $authentik_username;
-    proxy_set_header X-authentik-groups   $authentik_groups;
-  '';
-};
-locations."/outpost.goauthentik.io/" = {
-  proxyPass = "http://100.64.0.5:9000/outpost.goauthentik.io/";
-  extraConfig = ''
-    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-    add_header Set-Cookie $auth_cookie;
-    auth_request_set $auth_cookie $upstream_http_set_cookie;
-  '';
-};
-locations."@authentik_redirect" = {
-  extraConfig = ''
-    return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
-  '';
-};
-```
-
-**Unauthenticated request flow**: `auth_request` → 401 → redirect to
-`<service>/outpost.goauthentik.io/start?rd=...` → Authentik redirects to `auth.vafla.eu` →
-Anubis → login → cookie set on `.vafla.eu` → redirect back → `auth_request` passes →
-proxied to the service's own Anubis instance → backend. Cookie persists across subsequent
-visits, so this chain only runs once per login.
-
----
-
-## 10. Secrets management — agenix
+## 9. Secrets management — agenix
 
 `agenix` (ryantm/agenix) encrypts secrets per-host using SSH public keys.
 Each secret is re-encrypted for every host that needs it.
@@ -340,15 +260,14 @@ Current secrets:
 - `secrets/desec-token.age` — deSEC API token for ACME DNS-01
 - `secrets/headplane-cookie-secret.age` — Headplane session signing key
 - `secrets/ssh-private-key.age` — kt480 SSH private key
-- `secrets/authentik-secret-key.age` — `AUTHENTIK_SECRET_KEY=...` (homeserver)
-- `secrets/authentik-postgres-password.age` — `AUTHENTIK_POSTGRESQL__PASSWORD=...` (homeserver)
-- `secrets/authentik-bootstrap.age` — `AUTHENTIK_BOOTSTRAP_EMAIL=...` + `AUTHENTIK_BOOTSTRAP_PASSWORD=...` (homeserver)
+- `secrets/enclosed-env.age` — `AUTHENTICATION_JWT_SECRET=...` +
+  `AUTHENTICATION_USERS=...` (homeserver)
 
-`homeserver` is now a registered agenix host (added to `allHosts` in `agenix-rules.nix`).
+`homeserver` is a registered agenix host (in `allHosts` in `agenix-rules.nix`).
 
 ---
 
-## 11. Tailnet DNS — Technitium + DNS4EU fallback
+## 10. Tailnet DNS — Technitium + DNS4EU fallback
 
 Technitium runs on the home VM (`homeserver`, `100.64.0.5`) via `services.technitium-dns-server`
 (`modules/homeserver/technitium.nix`). `openFirewall = false` — `tailscale0` is already trusted.
@@ -362,20 +281,21 @@ Headscale split-DNS (`modules/vps/headscale.nix`): `nameservers.split."vafla.eu"
 **Primary** zones (most-specific-match wins):
 - `dns.vafla.eu` → `100.64.0.1` (tier 1, no public record)
 - `proxmox.vafla.eu` → `100.64.0.1` (tier 1, no public record)
+- `headplane.vafla.eu` → `100.64.0.1` (tier 1, no public record)
 - `headscale.vafla.eu` → `31.70.105.226` (VPS **public** IP — needed for DERP bootstrap,
   see §4; this is the one record that must NOT point at the tailscale IP)
 
-Everything else (public tier 0a/0b/0c subdomains, `auth.vafla.eu`) needs no entry — the
-Forwarder zone handles it automatically. Only add a new zone here when a subdomain has no
-public DNS record at all.
+Everything else (public tier 0a/0b subdomains) needs no entry — the Forwarder zone
+handles it automatically. Only add a new zone here when a subdomain has no public DNS
+record at all.
 
 Local machine DNS (non-tailnet): `86.54.11.100 86.54.11.200` (joindns4.eu — DNSSEC validating).
 
 ---
 
-## 12. Service access tiers and service map
+## 11. Service access tiers and service map
 
-Four tiers. The distinction is made in DNS and nginx config.
+Three tiers. The distinction is made in DNS and nginx config.
 TLS works for all — the cert covers `*.vafla.eu` + `vafla.eu` + `map.mc.vafla.eu`.
 
 ### Tier 0a — public, bare (headscale only)
@@ -386,35 +306,29 @@ TLS works for all — the cert covers `*.vafla.eu` + `vafla.eu` + `map.mc.vafla.
 
 ### Tier 0b — public, Anubis only
 
-deSEC A record → VPS public IP. Static/read-only — no login wall needed.
+deSEC A record → VPS public IP. No central SSO — any login-gated service here uses its
+own login, protected by fail2ban (§7).
 
 | Subdomain | Service | Backend |
 |---|---|---|
-| `vafla.eu` | MC server :25565 (TCP) + future CV/landing page | VPS (mc-proxy) / home VM |
+| `vafla.eu` | MC server :25565 (TCP) + Matrix homeserver (tuwunel, `/_matrix` path, needs LiveKit for calls) + future landing page | VPS (mc-proxy) / home VM |
 | `mc.vafla.eu` | Static page (server info, modpack, voice chat, map link) | home VM |
 | `map.mc.vafla.eu` | Bluemap (MC world map) | home VM |
 | `bachkali.vafla.eu` | Gatus (status page) | VPS localhost:8081 |
 | `rechnik.vafla.eu` | TBD | home VM |
-| `auth.vafla.eu` | Authentik SSO login portal — **deployed**, no Authentik wrapper (circular) | home VM (`100.64.0.5:9000`) |
-| `taina.vafla.eu` | Enclosed (secure note sharing) — no Authentik, own account-gated creation | home VM (`100.64.0.5:8787`) |
-
-### Tier 0c — public, Anubis + Authentik + fail2ban
-
-deSEC A record → VPS public IP. Apps that require a login wall.
-
-| Subdomain | Service | Backend |
-|---|---|---|
+| `taina.vafla.eu` | Enclosed (secure note sharing) — **deployed**, own account-gated creation | home VM (`100.64.0.5:8787`) |
 | `git.vafla.eu` | Forgejo | home VM |
 | `nazhivo.vafla.eu` | Owncast | home VM |
 | `dok.vafla.eu` | Cryptpad — registration closed after creating one admin account; single-user usage, sharing documents via direct link only, not open to other registered users | home VM |
 | `tube.vafla.eu` | Peertube | home VM |
 | `tv.vafla.eu` | Jellyfin | home VM |
 | `media.vafla.eu` | Immich | home VM |
-| `vafla.eu` | Matrix homeserver (tuwunel, `/_matrix` path) — needs LiveKit for calls | home VM |
 
-### Tier 1 — tailnet-only, Authentik + fail2ban (no Anubis)
+### Tier 1 — tailnet-only (no Anubis, no SSO)
 
-No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tailscale0` only.
+No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tailscale0`
+only. Any login-gated service here uses its own login — tailnet-only reachability is the
+access control.
 
 | Subdomain | Service | Backend |
 |---|---|---|
@@ -423,17 +337,16 @@ No deSEC record. Technitium resolves to VPS tailscale IP. nginx listens on `tail
 | `muzika.vafla.eu` | Navidrome (server) — clients: Feishin (desktop, native app, not hosted), Wavio (Android, Subsonic API) | home VM |
 | `*arr.vafla.eu` | \*arr stack (TBD) | home VM |
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
-| `headplane.vafla.eu` | Headplane (Headscale web UI) | VPS localhost:3000 |
-| `proxmox.vafla.eu` | Proxmox web GUI — **deployed, no Authentik** (has its own login) | Proxmox baremetal (`100.64.0.4:8006`) |
+| `headplane.vafla.eu` | Headplane (Headscale web UI) — **deployed** | VPS localhost:3000 |
+| `proxmox.vafla.eu` | Proxmox web GUI — **deployed** | Proxmox baremetal (`100.64.0.4:8006`) |
 
 ### DNS summary
 
-| Tier | deSEC record | Technitium record | nginx listens on | Anubis | Authentik |
-|---|---|---|---|---|---|
-| 0a — headscale | `A` → VPS public IP | `A` → VPS tailscale IP | public | no | no |
-| 0b — public static | `A` → VPS public IP | `A` → VPS tailscale IP | public | yes | no |
-| 0c — public apps | `A` → VPS public IP | `A` → VPS tailscale IP | public | yes | yes |
-| 1 — tailnet | none | `A` → VPS tailscale IP | `tailscale0` only | no | yes |
+| Tier | deSEC record | Technitium record | nginx listens on | Anubis |
+|---|---|---|---|---|
+| 0a — headscale | `A` → VPS public IP | `A` → VPS **public** IP (DERP bootstrap, §4) | public | no |
+| 0b — public | `A` → VPS public IP | none (Forwarder zone handles it, §10) | public | yes |
+| 1 — tailnet | none | `A` → VPS tailscale IP | `tailscale0` only | no |
 
 ### nginx virtualHost patterns
 
@@ -453,36 +366,39 @@ services.nginx.virtualHosts."headscale.vafla.eu" = {
   locations."/" = { proxyPass = "http://127.0.0.1:8080"; proxyWebsockets = true; };
 };
 
-# Tier 0c — public, Anubis + Authentik (see §9 for full template)
-
-# Tier 1 — tailnet-only, Authentik only (see §9 for full template)
+# Tier 1 — tailnet-only
+services.nginx.virtualHosts."<service>.vafla.eu" = {
+  listenAddresses = [ "100.64.0.1" ];
+  forceSSL = true; useACMEHost = "vafla.eu";
+  locations."/" = { proxyPass = "http://100.64.0.5:<port>"; proxyWebsockets = true; };
+};
 ```
 
 ---
 
 ### Implementation order
 
-One at a time, each built end-to-end (app + nginx vhost + Anubis + Authentik outpost +
-DNS record, per its own tier below) and tested before moving to the next:
+One at a time, each built end-to-end (app + nginx vhost + Anubis + DNS record, per its
+own tier below) and tested before moving to the next:
 
-1. `headplane.vafla.eu` — tier 1
-2. `taina.vafla.eu` (Enclosed) — tier 0b
-3. `dok.vafla.eu` (Cryptpad) — tier 0c
-4. `nazhivo.vafla.eu` (Owncast) — tier 0c
+1. `headplane.vafla.eu` — tier 1 ✓ deployed
+2. `taina.vafla.eu` (Enclosed) — tier 0b ✓ deployed
+3. `dok.vafla.eu` (Cryptpad) — tier 0b
+4. `nazhivo.vafla.eu` (Owncast) — tier 0b
 5. `knigi.vafla.eu` (Calibre) — tier 1
 6. `homarr.vafla.eu` (Homarr) — tier 1
 7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
 8. `rechnik.vafla.eu` — tier 0b
-9. `git.vafla.eu` (Forgejo) — tier 0c
-10. `vafla.eu` `/_matrix` (Matrix) — tier 0c, needs LiveKit deployed alongside for calls
-11. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0c) — needs planning first
-12. `tube.vafla.eu` (Peertube) — tier 0c
-13. `media.vafla.eu` (Immich) — tier 0c
+9. `git.vafla.eu` (Forgejo) — tier 0b
+10. `vafla.eu` `/_matrix` (Matrix) — tier 0b, needs LiveKit deployed alongside for calls
+11. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b) — needs planning first
+12. `tube.vafla.eu` (Peertube) — tier 0b
+13. `media.vafla.eu` (Immich) — tier 0b
 14. `muzika.vafla.eu` (Navidrome) — tier 1
 
 ---
 
-## 13. VPS setup plan
+## 12. VPS setup plan
 
 ### Domain / service list
 
@@ -490,19 +406,19 @@ DNS record, per its own tier below) and tested before moving to the next:
 
 | Record | Tier | Service | When |
 |---|---|---|---|
-| `vafla.eu` | 0b/0c | MC server :25565 (TCP) + Matrix `/_matrix` + future landing page | Stage 1 |
+| `vafla.eu` | 0b | MC server :25565 (TCP) + Matrix `/_matrix` + future landing page | Stage 1 |
 | `headscale.vafla.eu` | 0a | Headscale control plane | Stage 1 ✓ |
 | `bachkali.vafla.eu` | 0b | Gatus | Stage 1 ✓ |
 | `mc.vafla.eu` | 0b | Static page | Stage 5 |
 | `map.mc.vafla.eu` | 0b | Bluemap | Stage 5 |
 | `rechnik.vafla.eu` | 0b | TBD | Stage 5 |
-| `taina.vafla.eu` | 0b | Enclosed | Stage 5 |
-| `git.vafla.eu` | 0c | Forgejo | Stage 5 |
-| `nazhivo.vafla.eu` | 0c | Owncast | Stage 5 |
-| `dok.vafla.eu` | 0c | Cryptpad | Stage 5 |
-| `tube.vafla.eu` | 0c | Peertube | Stage 5 |
-| `tv.vafla.eu` | 0c | Jellyfin | Stage 5 |
-| `media.vafla.eu` | 0c | Immich | Stage 5 |
+| `taina.vafla.eu` | 0b | Enclosed | Stage 5 ✓ |
+| `git.vafla.eu` | 0b | Forgejo | Stage 5 |
+| `nazhivo.vafla.eu` | 0b | Owncast | Stage 5 |
+| `dok.vafla.eu` | 0b | Cryptpad | Stage 5 |
+| `tube.vafla.eu` | 0b | Peertube | Stage 5 |
+| `tv.vafla.eu` | 0b | Jellyfin | Stage 5 |
+| `media.vafla.eu` | 0b | Immich | Stage 5 |
 
 **Technitium records — nginx-proxied services** (all → VPS tailscale IP, Stage 5):
 
@@ -511,11 +427,10 @@ DNS record, per its own tier below) and tested before moving to the next:
 | `homarr.vafla.eu` | 1 | Homarr |
 | `knigi.vafla.eu` | 1 | Calibre |
 | `muzika.vafla.eu` | 1 | Navidrome |
-| `matrix.vafla.eu` | 0c | Matrix (also needs deSEC for `/_matrix`) |
 | `*arr.vafla.eu` | 1 | \*arr stack (TBD) |
 | `dns.vafla.eu` | 1 | Technitium web UI |
 | `headplane.vafla.eu` | 1 | Headplane — VPS-local backend |
-| `proxmox.vafla.eu` | 1 | Proxmox web GUI — tailnet only, Authentik, no Anubis; nginx → Proxmox baremetal tailscale IP:8006 |
+| `proxmox.vafla.eu` | 1 | Proxmox web GUI — tailnet only, no Anubis; nginx → Proxmox baremetal tailscale IP:8006 |
 
 SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 (`100.64.0.4`, `100.64.0.5`) — no dedicated SSH subdomain needed.
@@ -542,13 +457,10 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 - [x] `modules/vps/fail2ban.nix` — sshd + nginx jails
 - [x] `modules/vps/geoip.nix` — db-ip.com MMDB, monthly timer
 - [x] `modules/vps/gatus.nix` — Gatus status page on `bachkali.vafla.eu:8081`, grouped
-      VPS / MC / Home Server. Authentik-gated endpoints check the backend directly over
-      tailnet (`100.64.0.5:<port>`), not the public hostname — `auth_request` would
-      otherwise intercept before the backend, making the check meaningless. Cert
-      expiration checked only on Headscale (shared wildcard cert, redundant elsewhere).
+      VPS / MC / Home Server. Cert expiration checked only on Headscale (shared wildcard
+      cert, redundant elsewhere).
 - [x] `modules/vps/anubis.nix` — Anubis in front of Gatus; nginx group fix; geo-blocking
-- [ ] `modules/vps/headplane.nix` — deferred to Stage 5; needs home VM up for Authentik
-      (behind Anubis + Authentik + fail2ban, tailnet-only, `listenAddresses`)
+- [x] `modules/vps/headplane.nix` — tailnet-only, `listenAddresses`
 - [ ] `modules/vps/mc-proxy.nix` — TCP stream proxy for Minecraft :25565 → home VM; deferred to Stage 5
 
 ### Stage 3 — first deploy and verify ✓
@@ -572,33 +484,29 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 - [x] Note home VM tailscale IP — applied to `headscale.nix` `nameservers.global` and all
       tier-1 `proxyPass` targets (`100.64.0.5`)
 
-### Stage 5 — service layer (after home VM is up with Authentik + Technitium)
+### Stage 5 — service layer (after home VM is up with Technitium)
 
 - [x] Provision home VM on Proxmox (NixOS) — named `homeserver`, `hosts/homeserver/`.
       q35 + OVMF/UEFI (Secure Boot pre-enroll off), 10 cores (`host` type), 26-30GB RAM,
       256GB disk on `fastvm`. MC server runs as a service inside this VM, not a separate VM.
 - [x] Configure SSH on home VM — tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`),
-      key-only, `PermitRootLogin = "prohibit-password"` (see §15)
-- [x] Set up Authentik on home VM — `modules/homeserver/authentik.nix` (see §9)
-- [x] Set up Technitium on home VM — `modules/homeserver/technitium.nix` (see §11)
+      key-only, `PermitRootLogin = "prohibit-password"` (see §14)
+- [x] Set up Technitium on home VM — `modules/homeserver/technitium.nix` (see §10)
+- [x] Set up Enclosed on home VM — `modules/homeserver/enclosed.nix` (secure note sharing,
+      `taina.vafla.eu`, tier 0b)
 - [x] Fill in home VM tailscale IP in `headscale.nix` `nameservers.global` (`100.64.0.5`)
 - [x] Fill in VPS tailscale IP in tier-1 nginx `listenAddresses` (`100.64.0.1`) — used by
-      `dns.vafla.eu` and `proxmox.vafla.eu` so far
+      `dns.vafla.eu`, `proxmox.vafla.eu`, `headplane.vafla.eu`
 - [ ] Fill in home VM tailscale IP in `mc-proxy.nix` (MC server runs on home VM); wire into vps.nix
-- [ ] Wire up `modules/vps/headplane.nix` — tailnet-only (`headplane.vafla.eu`),
-      behind Anubis + Authentik + fail2ban; `listenAddresses = [ "100.64.0.1" ]`;
-      the `<authentik-tailnet-ip>` placeholder can now be filled with `100.64.0.5`
-- [~] Add Anubis instances per service (`modules/vps/anubis.nix`) — done for `auth.vafla.eu`;
-      rest still pending per-service
-- [ ] Add nginx virtualHosts for tier-0b/0c services
+- [~] Add Anubis instances per service (`modules/vps/anubis.nix`) — done for `taina.vafla.eu`
+      (Enclosed) and `gatus`; rest still pending per-service
+- [ ] Add nginx virtualHosts for remaining tier-0b services
 - [x] Add nginx virtualHosts for tier-1 services — `dns.vafla.eu`
-      (`modules/vps/technitium-proxy.nix`) and `proxmox.vafla.eu`
-      (`modules/vps/proxmox-proxy.nix`, no-Authentik exception) done; rest pending
-- [x] Add Authentik outpost `proxyPass` blocks — done for `dns.vafla.eu`; template known,
-      same pattern for the rest
-- [ ] Add deSEC A records for all tier-0b and tier-0c subdomains → VPS public IP
-- [~] Add Technitium DNS records for all tier-1 subdomains → VPS tailscale IP — `dns` and
-      `proxmox` done; rest pending
+      (`modules/vps/technitium-proxy.nix`), `proxmox.vafla.eu`
+      (`modules/vps/proxmox-proxy.nix`), `headplane.vafla.eu` done; rest pending
+- [ ] Add deSEC A records for all remaining tier-0b subdomains → VPS public IP
+- [~] Add Technitium DNS records for all tier-1 subdomains → VPS tailscale IP — `dns`,
+      `proxmox`, `headplane` done; rest pending
 
 ### Stage 6 — Proxmox host + UPS + ZFS storage (after home VM is up)
 
@@ -609,8 +517,8 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
       official Tailscale apt repo first, not in Debian's default repos);
       registered with Headscale — `100.64.0.4`
 - [x] Add Technitium record: `proxmox.vafla.eu` → VPS tailscale IP (`100.64.0.1`)
-- [x] Add nginx virtualHost for `proxmox.vafla.eu` on VPS — **no Authentik** (deliberate
-      exception, see §9/§12), proxyWebsockets, proxyPass → `100.64.0.4:8006`,
+- [x] Add nginx virtualHost for `proxmox.vafla.eu` on VPS — no central SSO (Proxmox has
+      its own login), proxyWebsockets, proxyPass → `100.64.0.4:8006`,
       `proxy_ssl_verify off` (Proxmox serves its own self-signed cert)
 - [x] Configure SSH on Proxmox baremetal: listens on tailnet IP (`100.64.0.4`) + local LAN IP
       (`192.168.100.100`); key-only, `PermitRootLogin = "prohibit-password"`
@@ -641,7 +549,7 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 - [x] Add `kashon01/d03-vm-backup` as Proxmox Backup storage (ID: `d03-vm-backup`):
       Datacenter → Storage → Add → Directory → path: `/kashon01/d03-vm-backup`, content: Backup;
       retention set in storage Edit → Prune options — **no sanoid on this dataset**
-- [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §14 for full config);
+- [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §13 for full config);
       `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically
 - [ ] Set up daily cron to copy configs to `d01-archiv` (add to `crontab -e` on Proxmox host):
       ```
@@ -654,14 +562,13 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
       d02-lichni  →  /kashon01/d02-lichni
       d04-mc      →  /kashon01/d04-mc
       ```
-- [ ] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS) — verify whether
-      this was done during VM creation or still needs doing:
+- [x] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS):
       ```
       mapping: d01-archiv,  tag: d01-archiv
       mapping: d02-lichni,  tag: d02-lichni
       mapping: d04-mc,      tag: d04-mc
       ```
-- [ ] Declare mounts in **home VM** NixOS config:
+- [x] Declare mounts in **home VM** NixOS config:
       ```nix
       fileSystems."/d01-archiv" = { device = "d01-archiv"; fsType = "virtiofs"; };
       fileSystems."/d02-lichni" = { device = "d02-lichni"; fsType = "virtiofs"; };
@@ -670,7 +577,7 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 
 ---
 
-## 14. Open items / not yet finalized
+## 13. Open items / not yet finalized
 
 ### Gotchas hit provisioning the `homeserver` VM (for next time)
 
@@ -718,7 +625,7 @@ tailscale up --login-server https://headscale.vafla.eu
 ```
 
 Technitium record: `proxmox.vafla.eu` → VPS tailscale IP — nginx proxies to Proxmox
-baremetal `:8006`, no Authentik (`proxyWebsockets = true` required for the console).
+baremetal `:8006`, no central SSO (`proxyWebsockets = true` required for the console).
 
 Access GUI at `https://proxmox.vafla.eu` on the tailnet.
 
@@ -820,26 +727,22 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 | Component | Where | How reached |
 |---|---|---|
 | Tailscale | Proxmox baremetal (apt) + each VM | tailnet |
-| Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`), **no Authentik** (exception) |
+| Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`) |
 | SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`100.64.0.4`) + local LAN IP |
 | SSH — home VM | `homeserver` | tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`) |
 | UPS USB | Direct to Proxmox baremetal | local USB on host |
 | NUT server | Proxmox baremetal (apt) | bridge subnet (port 3493) |
-| Homarr | home VM | tailnet, behind Authentik (`homarr.vafla.eu`) |
+| Homarr | home VM | tailnet-only (`homarr.vafla.eu`) |
 | Shutdown | baremetal NUT → `shutdown -h now` | pve-guests.service stops VMs first |
 
 ---
 
-## 15. Key decisions already made (with reasoning, for context)
+## 14. Key decisions already made (with reasoning, for context)
 
 - **nginx over Traefik/Caddy**: NixOS-native declarative setup — `services.nginx` +
   `security.acme` is the most mature combination in the NixOS ecosystem. Traefik's
   auto-discovery is irrelevant here; everything is already declared in Nix.
-- **Authentik over Keycloak**: ~10x lighter on RAM (250-350MB vs 4GB+), native
-  forward-auth built in. Keycloak only makes sense with enterprise LDAP/AD needs.
-- **Headscale + DERP + Headplane on the VPS, Authentik on the home VM**: Headscale/DERP
-  need a stable public address. Authentik stays on the home VM — running it on the VPS
-  would put PostgreSQL + Redis on cloud hardware and store credentials on a third party.
+- **Headscale + DERP + Headplane on the VPS**: need a stable public address.
 - **DNS-01 over HTTP-01 for ACME**: enables one wildcard cert; works for tailnet-only
   services too (no public port 80 needed for the challenge).
 - **deSEC over ClouDNS for DNS hosting**: ClouDNS free plan has no API access.
@@ -850,9 +753,6 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
   free with no account. Monthly systemd timer for updates. Blocked: US, CN, RU, UA, BY, GB, IL.
 - **Anubis on public HTTP services only, except headscale**: headscale exempt (API clients
   fail PoW). Tailnet-only services exempt — unreachable from internet.
-- **Authentik on all services except headscale and tier-0b static**: static/read-only
-  public services are Anubis-only. All apps (tier 0c + tier 1) use Authentik forward-auth.
-  fail2ban on the VPS (not home VM) — only the VPS sees real client IPs.
 - **fail2ban on VPS not home VM**: all public traffic enters the VPS. Home VM only sees
   the VPS tailscale IP — banning there would block the VPS itself.
 - **agenix over sops-nix**: already integrated; per-file access control is sufficient
@@ -867,17 +767,20 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
   convenience without needing the tailnet up. Still key-only/no-password.
 - **`fastvm` — dedicated LVM-thin pool for VM disks, isolated from `kashon01`**: a second
   SSD (`nvme1n1`) wiped into its own pool, never sharing a VG with the boot disk or the RAID mirror.
-- **Authentik: native Postgres/Redis + OCI containers, not a native NixOS module**: no
-  `services.authentik` module exists in nixpkgs. See §9.
-- **`auth.vafla.eu` serves both the SSO redirect target and direct admin login** — the
-  redundant tailnet-only `authentik.vafla.eu` was removed. See §9 for the tradeoff.
-- **`proxmox.vafla.eu` is an explicit Authentik exception**: has its own login already.
+- **Authentik (central SSO) removed after initial deployment**: it was fully built and
+  working — domain-level forward-auth, one login for every service via `auth.vafla.eu`.
+  Removed because it broke native clients entirely: Jellyfin's TV/mobile apps, Calibre/OPDS
+  readers, Subsonic music clients, `git` over HTTPS, Matrix clients — none of them can
+  follow an HTML/cookie-based login redirect. Nearly every real service in the plan would
+  have needed an Authentik exception anyway (Proxmox, Jellyfin, Calibre, Navidrome, and
+  Enclosed all already did), making the shared SSO layer pointless overhead. Replaced with:
+  each service's own login (where it has one) + Anubis (public bot/PoW protection) +
+  fail2ban watching nginx logs for per-service brute-force patterns (§7).
 
 ---
 
-## 16. Quick glossary (for a new session catching up)
+## 15. Quick glossary (for a new session catching up)
 
-- **Authentik** — self-hosted IdP (OIDC/SAML) + forward-auth proxy provider.
 - **Headscale** — open-source, self-hosted Tailscale control plane.
 - **DERP** — Tailscale's relay fallback when direct WireGuard peer-to-peer fails.
 - **Anubis** — proof-of-work HTTP challenge tool (TecharoHQ/anubis) blocking AI/scraper crawlers.
@@ -886,7 +789,4 @@ zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-reco
 - **Gatus** — declarative status page; monitors endpoints and shows health dashboard.
 - **OCI containers / podman** — `virtualisation.oci-containers` runs plain Docker-image
   containers under NixOS; defaults to podman as the backend for `stateVersion ≥ 22.05`.
-  Used for Authentik's server/worker (no native NixOS module exists for those).
-- **Forward auth (domain level)** — an Authentik Proxy Provider mode where one provider
-  protects every subdomain under a parent domain via a shared SSO cookie, instead of one
-  provider per protected application.
+  Used for Enclosed (no native NixOS module exists for it).

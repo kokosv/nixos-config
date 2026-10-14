@@ -8,7 +8,6 @@
     ]) ++ (with config.homeserver; [
       basePackages
       technitium
-      authentik
       enclosed
     ]) ++ [
       ./_homeserver/hardware-configuration.nix

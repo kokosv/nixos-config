@@ -50,9 +50,6 @@ in
   "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko recovery ];
 
   # ── homeserver secrets ────────────────────────────────────────────────────────
-  "secrets/authentik-secret-key.age".publicKeys = [ homeserver koko recovery ];
-  "secrets/authentik-postgres-password.age".publicKeys = [ homeserver koko recovery ];
-  "secrets/authentik-bootstrap.age".publicKeys = [ homeserver koko recovery ];
   "secrets/enclosed-env.age".publicKeys = [ homeserver koko recovery ];
 
   # ── host-specific secrets (examples) ─────────────────────────────────────────

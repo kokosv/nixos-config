@@ -23,7 +23,7 @@
           {
             name = "Headplane";
             group = "VPS";
-            url = "http://127.0.0.1:3000/admin"; # dashboard lives at /admin, not /
+            url = "https://headplane.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -83,7 +83,7 @@
             name = "Enclosed";
             group = "Home Server";
             enabled = true;
-            url = "https://taina.vafla.eu"; # no Authentik wrapper, public hostname check is meaningful
+            url = "https://taina.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -91,7 +91,7 @@
             name = "Forgejo";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://git.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -99,7 +99,7 @@
             name = "Owncast";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://nazhivo.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -107,7 +107,7 @@
             name = "Cryptpad";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://dok.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -115,7 +115,7 @@
             name = "Peertube";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://tube.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -123,7 +123,7 @@
             name = "Immich";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://media.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -131,7 +131,7 @@
             name = "Jellyfin";
             group = "Home Server";
             enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            url = "https://tv.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
@@ -163,14 +163,7 @@
           {
             name = "Technitium";
             group = "Home Server";
-            url = "http://100.64.0.5:5380";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "Authentik";
-            group = "Home Server";
-            url = "https://auth.vafla.eu";
+            url = "https://dns.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }

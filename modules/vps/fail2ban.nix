@@ -33,8 +33,8 @@
           logpath = "/var/log/nginx/access.log";
           backend = "polling";
         };
-        # Enclosed (taina.vafla.eu) has its own login, no Authentik — this covers
-        # brute-forcing it. Reuse this pattern for other Authentik-exempt services.
+        # Enclosed (taina.vafla.eu) login brute-force protection.
+        # Reuse this pattern for other services with their own login.
         nginx-enclosed = {
           settings = {
             enabled = true;

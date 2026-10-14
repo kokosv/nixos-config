@@ -78,29 +78,6 @@
       };
     };
 
-    # ── Authentik login portal (auth.vafla.eu) ──────────────────────────────
-    # Public + tailnet reachable — the shared SSO login surface tier-0c public
-    # apps and tier-1 tailnet apps redirect to. No auth_request wrapper here —
-    # this IS Authentik, gating it behind itself would be circular.
-    services.anubis.instances.auth = {
-      settings = {
-        TARGET = "http://100.64.0.5:9000"; # authentik-server on homeserver, over tailnet
-        BIND = "/run/anubis/anubis-auth/anubis.sock";
-        DIFFICULTY = 4;
-      };
-    };
-    services.nginx.virtualHosts."auth.vafla.eu" = {
-      forceSSL = true;
-      useACMEHost = "vafla.eu";
-      locations."/" = {
-        proxyPass = "http://unix:/run/anubis/anubis-auth/anubis.sock";
-        proxyWebsockets = true;
-        extraConfig = ''
-          if ($geo_blocked) { return 403; }
-        '';
-      };
-    };
-
     # ── Enclosed (taina.vafla.eu) ────────────────────────────────────────────
     services.anubis.instances.taina = {
       settings = {
