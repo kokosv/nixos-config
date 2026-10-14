@@ -8,10 +8,36 @@
         web.port = 8081;
         endpoints = [
 
-          # ── VPS ────────────────────────────────────────────────────────────
+          # ── minecraft ──────────────────────────────────────────────────────
+          {
+            name = "Minecraft server";
+            group = "minecraft";
+            enabled = false;
+            url = "tcp://vafla.eu:25565";
+            interval = "5m";
+            conditions = [ "[CONNECTED] == true" ];
+          }
+          {
+            name = "mc.vafla.eu";
+            group = "minecraft";
+            enabled = false;
+            url = "https://mc.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "map.mc.vafla.eu";
+            group = "minecraft";
+            enabled = false;
+            url = "https://map.mc.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+
+          # ── public ─────────────────────────────────────────────────────────
           {
             name = "Headscale";
-            group = "VPS";
+            group = "public";
             url = "https://headscale.vafla.eu/health";
             interval = "5m";
             # Shared *.vafla.eu wildcard cert — only checked here, redundant elsewhere.
@@ -21,67 +47,16 @@
             ];
           }
           {
-            name = "Headplane";
-            group = "VPS";
-            url = "https://headplane.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          # ── MC ─────────────────────────────────────────────────────────────
-          {
-            name = "Minecraft server";
-            group = "MC";
-            enabled = false;
-            url = "tcp://vafla.eu:25565";
-            interval = "5m";
-            conditions = [ "[CONNECTED] == true" ];
-          }
-          {
-            name = "mc.vafla.eu";
-            group = "MC";
-            enabled = false;
-            url = "https://mc.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "map.mc.vafla.eu";
-            group = "MC";
-            enabled = false;
-            url = "https://map.mc.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-
-          # ── Home Server ─────────────────────────────────────────────────────
-          {
             name = "Landing page";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Proxmox";
-            group = "Home Server";
-            url = "https://proxmox.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-
-            name = "Homarr";
-            group = "Home Server";
-            enabled = false;
-            # Port TBD at deploy time.
-            url = "http://100.64.0.5:9999";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
             name = "Enclosed";
-            group = "Home Server";
+            group = "public";
             enabled = true;
             url = "https://taina.vafla.eu";
             interval = "5m";
@@ -89,7 +64,7 @@
           }
           {
             name = "Forgejo";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://git.vafla.eu";
             interval = "5m";
@@ -97,7 +72,7 @@
           }
           {
             name = "Owncast";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://nazhivo.vafla.eu";
             interval = "5m";
@@ -105,7 +80,7 @@
           }
           {
             name = "Cryptpad";
-            group = "Home Server";
+            group = "public";
             enabled = true;
             url = "https://dok.vafla.eu";
             interval = "5m";
@@ -113,7 +88,7 @@
           }
           {
             name = "Peertube";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://tube.vafla.eu";
             interval = "5m";
@@ -121,7 +96,7 @@
           }
           {
             name = "Immich";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://media.vafla.eu";
             interval = "5m";
@@ -129,15 +104,56 @@
           }
           {
             name = "Jellyfin";
-            group = "Home Server";
+            group = "public";
             enabled = false;
             url = "https://tv.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
           {
+            name = "Matrix";
+            group = "public";
+            enabled = false;
+            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "rechnik.vafla.eu";
+            group = "public";
+            enabled = false;
+            url = "https://rechnik.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+
+          # ── private ────────────────────────────────────────────────────────
+          {
+            name = "Headplane";
+            group = "private";
+            url = "https://headplane.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "Proxmox";
+            group = "private";
+            url = "https://proxmox.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
+            name = "Homarr";
+            group = "private";
+            enabled = false;
+            # Port TBD at deploy time.
+            url = "http://100.64.0.5:9999";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
+          {
             name = "Calibre";
-            group = "Home Server";
+            group = "private";
             enabled = false;
             url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
             interval = "5m";
@@ -145,7 +161,7 @@
           }
           {
             name = "Navidrome";
-            group = "Home Server";
+            group = "private";
             enabled = false;
             #  port TBD at deploy time
             url = "http://100.64.0.5:9999";
@@ -153,25 +169,9 @@
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Matrix";
-            group = "Home Server";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
             name = "Technitium";
-            group = "Home Server";
+            group = "private";
             url = "https://dns.vafla.eu";
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
-            name = "rechnik.vafla.eu";
-            group = "Home Server";
-            enabled = false;
-            url = "https://rechnik.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
