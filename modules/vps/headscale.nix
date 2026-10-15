@@ -21,7 +21,12 @@
           region_name = "Home";
           stun_listen_addr = "0.0.0.0:3478";
         };
-        derp.urls = []; # disable fallback to Tailscale's public DERP servers
+        # Fallback to Tailscale's public DERP relays when the self-hosted "Home"
+        # region is unreachable (e.g. mobile carrier CGNAT dropping the UDP/STUN
+        # path) — these only ever carry opaque end-to-end-encrypted WireGuard
+        # packets, not a control-plane dependency. Without this, there's no relay
+        # to fall back to and clients get stuck until a manual VPN toggle.
+        derp.urls = [ "https://controlplane.tailscale.com/derpmap/default" ];
       };
     };
 
