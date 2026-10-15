@@ -17,6 +17,7 @@
         technitiumProxy
         proxmoxProxy
         headplane
+        calibreProxy
         gatus
         fail2ban
       ])

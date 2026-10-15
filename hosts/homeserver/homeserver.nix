@@ -11,6 +11,7 @@
       enclosed
       cryptpad
       owncast
+      calibre
     ]) ++ [
       ./_homeserver/hardware-configuration.nix
       ./_homeserver/disko.nix
@@ -48,16 +49,32 @@
           };
         };
 
-        fileSystems."/d01-archiv" = {
-          device = "d01-archiv";
+        fileSystems."/d02-minecraft" = {
+          device = "d02-minecraft";
           fsType = "virtiofs";
         };
-        fileSystems."/d02-lichni" = {
-          device = "d02-lichni";
+        fileSystems."/d03-tv" = {
+          device = "d03-tv";
           fsType = "virtiofs";
         };
-        fileSystems."/d04-mc" = {
-          device = "d04-mc";
+        fileSystems."/d04-media" = {
+          device = "d04-media";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d05-dokumenti" = {
+          device = "d05-dokumenti";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d06-knigi" = {
+          device = "d06-knigi";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d07-muzika" = {
+          device = "d07-muzika";
+          fsType = "virtiofs";
+        };
+        fileSystems."/d08-vid-archiv" = {
+          device = "d08-vid-archiv";
           fsType = "virtiofs";
         };
 

@@ -113,14 +113,6 @@
             conditions = [ "[STATUS] == 200" ];
           }
           {
-            name = "Matrix";
-            group = "public";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
-            interval = "5m";
-            conditions = [ "[STATUS] == 200" ];
-          }
-          {
             name = "rechnik.vafla.eu";
             group = "public";
             enabled = false;
@@ -156,8 +148,8 @@
           {
             name = "Calibre";
             group = "private";
-            enabled = false;
-            url = "http://100.64.0.5:9999"; # direct backend check — port TBD at deploy time
+            enabled = true;
+            url = "https://knigi.vafla.eu";
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }

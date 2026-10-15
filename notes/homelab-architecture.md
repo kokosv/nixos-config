@@ -327,7 +327,7 @@ own login, protected by fail2ban (§7).
 
 | Subdomain | Service | Backend |
 |---|---|---|
-| `vafla.eu` | MC server :25565 (TCP) + Matrix homeserver (tuwunel, `/_matrix` path, needs LiveKit for calls) + future landing page | VPS (mc-proxy) / home VM |
+| `vafla.eu` | MC server :25565 (TCP) + future landing page | VPS (mc-proxy) / home VM |
 | `mc.vafla.eu` | Static page (server info, modpack, voice chat, map link) | home VM |
 | `map.mc.vafla.eu` | Bluemap (MC world map) | home VM |
 | `bachkali.vafla.eu` | Gatus (status page) | VPS localhost:8081 |
@@ -350,7 +350,7 @@ access control.
 | Subdomain | Service | Backend |
 |---|---|---|
 | `homarr.vafla.eu` | Homarr (dashboard) | home VM |
-| `knigi.vafla.eu` | Calibre | home VM |
+| `knigi.vafla.eu` | Calibre — **deployed**. Uses Calibre's own built-in content server (not Calibre-Web), auth via `--enable-auth` (HTTP Basic/Digest — no in-page login form exists in calibre-server, only the OS-native credential popup). Library lives at `/d06-knigi` (dataset root, no subfolder) | home VM (`100.64.0.5:8081`) |
 | `muzika.vafla.eu` | Navidrome (server) — clients: Feishin (desktop, native app, not hosted), Wavio (Android, Subsonic API) | home VM |
 | `*arr.vafla.eu` | \*arr stack (TBD) | home VM |
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
@@ -402,16 +402,15 @@ own tier below) and tested before moving to the next:
 2. `taina.vafla.eu` (Enclosed) — tier 0b ✓ deployed
 3. `dok.vafla.eu` + `dokument.vafla.eu` (Cryptpad) — tier 0b ✓ deployed
 4. `nazhivo.vafla.eu` (Owncast) — tier 0b ✓ deployed
-5. `knigi.vafla.eu` (Calibre) — tier 1
+5. `knigi.vafla.eu` (Calibre) — tier 1 ✓ deployed
 6. `homarr.vafla.eu` (Homarr) — tier 1
 7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
 8. `rechnik.vafla.eu` — tier 0b
 9. `git.vafla.eu` (Forgejo) — tier 0b
-10. `vafla.eu` `/_matrix` (Matrix) — tier 0b, needs LiveKit deployed alongside for calls
-11. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b) — needs planning first
-12. `tube.vafla.eu` (Peertube) — tier 0b
-13. `media.vafla.eu` (Immich) — tier 0b
-14. `muzika.vafla.eu` (Navidrome) — tier 1
+10. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b) — needs planning first
+11. `tube.vafla.eu` (Peertube) — tier 0b
+12. `media.vafla.eu` (Immich) — tier 0b
+13. `muzika.vafla.eu` (Navidrome) — tier 1
 
 ---
 
@@ -423,7 +422,7 @@ own tier below) and tested before moving to the next:
 
 | Record | Tier | Service | When |
 |---|---|---|---|
-| `vafla.eu` | 0b | MC server :25565 (TCP) + Matrix `/_matrix` + future landing page | Stage 1 |
+| `vafla.eu` | 0b | MC server :25565 (TCP) + future landing page | Stage 1 |
 | `headscale.vafla.eu` | 0a | Headscale control plane | Stage 1 ✓ |
 | `bachkali.vafla.eu` | 0b | Gatus | Stage 1 ✓ |
 | `mc.vafla.eu` | 0b | Static page | Stage 5 |
@@ -555,43 +554,71 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 - [x] ~~Add `kashon01` pool as Proxmox storage backend~~ — **decided unnecessary**. VM
       disks live on `fastvm` (dedicated LVM-thin pool on `nvme1n1`, isolated from both the
       boot disk and `kashon01`), not on `kashon01` directly. `kashon01` is only ever
-      consumed via the VirtioFS directory shares below and the `d03-vm-backup` Directory
+      consumed via the VirtioFS directory shares below and the `d01-vm-backup` Directory
       storage — neither needs the pool registered as a ZFS-type Proxmox storage backend.
-- [x] Create the four datasets:
+- [x] Reorganized from the original 4 generic datasets into 8 purpose-specific ones
+      (all empty at the time, no data migration needed):
       ```
-      zfs create kashon01/d01-archiv
-      zfs create kashon01/d02-lichni
-      zfs create kashon01/d03-vm-backup
-      zfs create kashon01/d04-mc
+      zfs rename kashon01/d03-vm-backup kashon01/d01-vm-backup
+      zfs rename kashon01/d04-mc kashon01/d02-minecraft
+      zfs destroy -r kashon01/d01-archiv   # was empty, replaced by d06-knigi below
+      zfs destroy -r kashon01/d02-lichni   # was empty, replaced by d05-dokumenti below
+      zfs create kashon01/d03-tv
+      zfs create kashon01/d04-media
+      zfs create kashon01/d05-dokumenti
+      zfs create kashon01/d06-knigi
+      zfs create kashon01/d07-muzika
+      zfs create kashon01/d08-vid-archiv
       ```
-- [x] Add `kashon01/d03-vm-backup` as Proxmox Backup storage (ID: `d03-vm-backup`):
-      Datacenter → Storage → Add → Directory → path: `/kashon01/d03-vm-backup`, content: Backup;
-      retention set in storage Edit → Prune options — **no sanoid on this dataset**
+- [x] `kashon01/d01-vm-backup` as Proxmox Backup storage (ID: `d01-vm-backup`):
+      Datacenter → Storage → Add → Directory → path: `/kashon01/d01-vm-backup`, content: Backup;
+      retention set in storage Edit → Prune options — **no sanoid on this dataset**.
+      (Proxmox storage path isn't editable after creation — had to delete and recreate
+      the storage entry rather than just renaming it after the `zfs rename`.)
 - [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §13 for full config);
-      `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically
-- [ ] Set up daily cron to copy configs to `d01-archiv` (add to `crontab -e` on Proxmox host):
+      `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically.
+      **Not yet written for the new 7 snapshotted datasets** — retention windows for
+      `d03-tv`/`d04-media`/`d05-dokumenti`/`d08-vid-archiv` still need deciding (only
+      `d02-minecraft`'s policy carries over unchanged from the old `d04-mc` template).
+      Currently monolit still runs the default Proxmox-bundled `zfs-auto-snapshot`
+      (same fixed policy for every dataset, no per-dataset control) — decided to replace
+      it with sanoid rather than run both.
+- [ ] Set up daily cron to copy configs to `d05-dokumenti` (add to `crontab -e` on Proxmox host):
       ```
-      0 3 * * * rsync -a /etc/pve/ /kashon01/d01-archiv/pve/
-      0 3 * * * rsync -a /etc/nut/ /kashon01/d01-archiv/nut/
+      0 3 * * * rsync -a /etc/pve/ /kashon01/d05-dokumenti/pve/
+      0 3 * * * rsync -a /etc/nut/ /kashon01/d05-dokumenti/nut/
       ```
-- [x] Create Directory Mappings (Datacenter → Resource Mappings → Directory):
+- [x] Directory Mappings (Datacenter → Resource Mappings → Directory) — note these store a
+      fixed host **path**, not a live reference to the ZFS dataset: a `zfs rename` does
+      **not** update them, the old mapping just silently points at a path that no longer
+      exists. `d02-minecraft`'s mapping had to be deleted and recreated after its rename,
+      same as the retired ones:
       ```
-      d01-archiv  →  /kashon01/d01-archiv
-      d02-lichni  →  /kashon01/d02-lichni
-      d04-mc      →  /kashon01/d04-mc
+      d02-minecraft   →  /kashon01/d02-minecraft
+      d03-tv          →  /kashon01/d03-tv
+      d04-media       →  /kashon01/d04-media
+      d05-dokumenti   →  /kashon01/d05-dokumenti
+      d06-knigi       →  /kashon01/d06-knigi
+      d07-muzika      →  /kashon01/d07-muzika
+      d08-vid-archiv  →  /kashon01/d08-vid-archiv
       ```
-- [x] Add VirtioFS shares to **home VM** (VM → Hardware → Add → VirtioFS):
-      ```
-      mapping: d01-archiv,  tag: d01-archiv
-      mapping: d02-lichni,  tag: d02-lichni
-      mapping: d04-mc,      tag: d04-mc
-      ```
-- [x] Declare mounts in **home VM** NixOS config:
+      (`d01-vm-backup` has no mapping — it's Proxmox backup storage only, never a guest mount.)
+- [x] VirtioFS shares on **home VM** (VM → Hardware → Add → VirtioFS) — one per mapping
+      above, tag matching dataset name. **Gotcha**: VirtioFS has no hot-unplug; removing
+      a device in Hardware only edits the VM's config, the host-side `virtiofsd` still
+      holds the directory open (blocking `zfs destroy` with "dataset is busy") until the
+      VM is actually rebooted.
+- [x] Declare mounts in **home VM** NixOS config (`hosts/homeserver/homeserver.nix`):
       ```nix
-      fileSystems."/d01-archiv" = { device = "d01-archiv"; fsType = "virtiofs"; };
-      fileSystems."/d02-lichni" = { device = "d02-lichni"; fsType = "virtiofs"; };
-      fileSystems."/d04-mc"     = { device = "d04-mc";     fsType = "virtiofs"; };
+      fileSystems."/d02-minecraft"  = { device = "d02-minecraft";  fsType = "virtiofs"; };
+      fileSystems."/d03-tv"         = { device = "d03-tv";         fsType = "virtiofs"; };
+      fileSystems."/d04-media"      = { device = "d04-media";      fsType = "virtiofs"; };
+      fileSystems."/d05-dokumenti"  = { device = "d05-dokumenti";  fsType = "virtiofs"; };
+      fileSystems."/d06-knigi"      = { device = "d06-knigi";      fsType = "virtiofs"; };
+      fileSystems."/d07-muzika"     = { device = "d07-muzika";     fsType = "virtiofs"; };
+      fileSystems."/d08-vid-archiv" = { device = "d08-vid-archiv"; fsType = "virtiofs"; };
       ```
+      (`d01-vm-backup` not declared here either, same reason as above.)
 
 ---
 
@@ -669,42 +696,38 @@ Key points:
 
 | Dataset | Mounted in | Purpose |
 |---|---|---|
-| `kashon01/d01-archiv` | home VM `/d01-archiv` (VirtioFS) | Archival data + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron) |
-| `kashon01/d02-lichni` | home VM `/d02-lichni` (VirtioFS) | Personal files — subdir structure TBD |
-| `kashon01/d03-vm-backup` | Proxmox backup storage | VM backups (`dump/`) — retention managed by Proxmox, no sanoid snapshots |
-| `kashon01/d04-mc` | home VM `/d04-mc` (VirtioFS) | Minecraft server data — subdir structure TBD |
+| `kashon01/d01-vm-backup` | Proxmox backup storage (not a guest mount) | VM backups (`dump/`) — retention managed by Proxmox, no sanoid snapshots |
+| `kashon01/d02-minecraft` | home VM `/d02-minecraft` (VirtioFS) | Minecraft server data |
+| `kashon01/d03-tv` | home VM `/d03-tv` (VirtioFS) | TV library |
+| `kashon01/d04-media` | home VM `/d04-media` (VirtioFS) | General media |
+| `kashon01/d05-dokumenti` | home VM `/d05-dokumenti` (VirtioFS) | Documents + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron) |
+| `kashon01/d06-knigi` | home VM `/d06-knigi` (VirtioFS) | Calibre library (dataset root is the library root, no subfolder) |
+| `kashon01/d07-muzika` | home VM `/d07-muzika` (VirtioFS) | Music library |
+| `kashon01/d08-vid-archiv` | home VM `/d08-vid-archiv` (VirtioFS) | Video archive |
+
+(Renamed/reorganized from the original 4 generic datasets — `d03-vm-backup`→`d01-vm-backup`,
+`d04-mc`→`d02-minecraft`; `d01-archiv`/`d02-lichni` destroyed, replaced by the 6 new
+purpose-specific ones. All were empty at the time, no data migration needed.)
 
 #### Sanoid snapshot retention (`/etc/sanoid/sanoid.conf` on Proxmox baremetal)
+
+**Not yet installed.** Proxmox's bundled `zfs-auto-snapshot` is currently running instead
+(default on Proxmox, same fixed policy pool-wide, not per-dataset) — decided to replace it
+with sanoid for per-dataset control, but retention windows for `d03-tv`/`d04-media`/
+`d05-dokumenti`/`d06-knigi`/`d07-muzika`/`d08-vid-archiv` still need deciding based on actual
+usage patterns once there's real content in them. Only the minecraft template carries over
+unchanged from the old `d04-mc` config below as a starting point:
 
 Each number = how many snapshots of that type to keep. Sanoid takes and prunes automatically via systemd timer.
 
 ```ini
-[kashon01/d01-archiv]
-  use_template = archiv
+[kashon01/d02-minecraft]
+  use_template = minecraft
 
-[kashon01/d02-lichni]
-  use_template = lichni
+# d01-vm-backup: NO sanoid — Proxmox manages VZDump retention directly
+# remaining 6 datasets: templates TBD
 
-[kashon01/d04-mc]
-  use_template = mc
-
-# d03-vm-backup: NO sanoid — Proxmox manages VZDump retention directly
-
-[template_archiv]
-  daily   = 0
-  weekly  = 8    # 8 weeks of history — archival data changes slowly
-  monthly = 0
-  autosnap = yes
-  autoprune = yes
-
-[template_lichni]
-  daily   = 7    # last 7 days
-  weekly  = 4    # last 4 weeks
-  monthly = 3    # last 3 months
-  autosnap = yes
-  autoprune = yes
-
-[template_mc]
+[template_minecraft]
   daily   = 7    # last 7 days
   weekly  = 4    # last 4 weeks
   monthly = 0
@@ -727,23 +750,23 @@ Snapshots are accessible as a read-only directory tree — no special tools need
 
 Example — browse and recover a file:
 ```bash
-ls /mnt/archiv/.zfs/snapshot/
-cp /mnt/archiv/.zfs/snapshot/autosnap_2025-10-10_daily/path/to/file.txt ~/recovered.txt
+ls /d06-knigi/.zfs/snapshot/
+cp /d06-knigi/.zfs/snapshot/autosnap_2025-10-10_daily/path/to/file.txt ~/recovered.txt
 ```
 
 List all snapshots for a dataset:
 ```bash
-zfs list -t snapshot kashon01/d01-archiv
+zfs list -t snapshot kashon01/d06-knigi
 ```
 
 Roll back an entire dataset to a snapshot (destructive — all changes since the snapshot are lost):
 ```bash
-zfs rollback kashon01/d01-archiv@autosnap_2025-10-10_daily
+zfs rollback kashon01/d06-knigi@autosnap_2025-10-10_daily
 ```
 
 Clone a snapshot into a new writable dataset (non-destructive — original dataset unchanged):
 ```bash
-zfs clone kashon01/d01-archiv@autosnap_2025-10-10_daily kashon01/d01-archiv-recovered
+zfs clone kashon01/d06-knigi@autosnap_2025-10-10_daily kashon01/d06-knigi-recovered
 ```
 
 #### Summary
