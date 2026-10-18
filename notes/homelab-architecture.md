@@ -65,6 +65,9 @@ Self-host a stack of services from a **home server**, made publicly reachable th
 └─────────────────────────────────────────────────────────────┘
 ```
 
+Proxmox host ("monolit") setup and everything baremetal — not Nix-reproducible — is
+documented separately in `notes/proxmox-baremetal.md`.
+
 ---
 
 ## 3. DNS & TLS
@@ -504,8 +507,8 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 ### Stage 5 — service layer (after home VM is up with Technitium)
 
 - [x] Provision home VM on Proxmox (NixOS) — named `homeserver`, `hosts/homeserver/`.
-      q35 + OVMF/UEFI (Secure Boot pre-enroll off), 10 cores (`host` type), 26-30GB RAM,
-      256GB disk on `fastvm`. MC server runs as a service inside this VM, not a separate VM.
+      VM hardware config (CPU/RAM/disk/BIOS) in `notes/proxmox-baremetal.md`. MC server
+      runs as a service inside this VM, not a separate VM.
 - [x] Configure SSH on home VM — tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`),
       key-only, `PermitRootLogin = "prohibit-password"` (see §14)
 - [x] Set up Technitium on home VM — `modules/homeserver/technitium.nix` (see §10)
@@ -527,98 +530,10 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 
 ### Stage 6 — Proxmox host + UPS + ZFS storage (after home VM is up)
 
-#### Proxmox host basics
-
-- [x] **BIOS**: AC Power Loss → **Last State**
-- [x] Install Tailscale on Proxmox Debian host (`apt install tailscale` — needed the
-      official Tailscale apt repo first, not in Debian's default repos);
-      registered with Headscale — `100.64.0.4`
-- [x] Add Technitium record: `proxmox.vafla.eu` → VPS tailscale IP (`100.64.0.1`)
-- [x] Add nginx virtualHost for `proxmox.vafla.eu` on VPS — no central SSO (Proxmox has
-      its own login), proxyWebsockets, proxyPass → `100.64.0.4:8006`,
-      `proxy_ssl_verify off` (Proxmox serves its own self-signed cert)
-- [x] Configure SSH on Proxmox baremetal: listens on tailnet IP (`100.64.0.4`) + local LAN IP
-      (`192.168.100.100`); key-only, `PermitRootLogin = "prohibit-password"`
-- [x] Set each VM: Options → **Start at boot = Yes**
-
-#### UPS + NUT
-
-- [~] Install NUT (`apt install nut`); deploy configs from `notes/ups/setup.md`:
-      copy `/etc/nut/{nut.conf,ups.conf,upsd.conf,upsd.users,upsmon.conf,upssched.conf}`;
-      copy `notes/ups/shutdown.sh` → `/etc/nut/upssched-cmd`; `chmod +x /etc/nut/upssched-cmd`;
-      `systemctl enable --now nut-server nut-monitor`; verify with `upsc ups@localhost`
-      — attempted, didn't work, left unresolved
-
-#### ZFS datasets + storage
-
-- [x] ~~Add `kashon01` pool as Proxmox storage backend~~ — **decided unnecessary**. VM
-      disks live on `fastvm` (dedicated LVM-thin pool on `nvme1n1`, isolated from both the
-      boot disk and `kashon01`), not on `kashon01` directly. `kashon01` is only ever
-      consumed via the VirtioFS directory shares below and the `d01-vm-backup` Directory
-      storage — neither needs the pool registered as a ZFS-type Proxmox storage backend.
-- [x] Reorganized from the original 4 generic datasets into 8 purpose-specific ones
-      (all empty at the time, no data migration needed):
-      ```
-      zfs rename kashon01/d03-vm-backup kashon01/d01-vm-backup
-      zfs rename kashon01/d04-mc kashon01/d02-minecraft
-      zfs destroy -r kashon01/d01-archiv   # was empty, replaced by d06-knigi below
-      zfs destroy -r kashon01/d02-lichni   # was empty, replaced by d05-dokumenti below
-      zfs create kashon01/d03-tv
-      zfs create kashon01/d04-media
-      zfs create kashon01/d05-dokumenti
-      zfs create kashon01/d06-knigi
-      zfs create kashon01/d07-muzika
-      zfs create kashon01/d08-vid-archiv
-      ```
-- [x] `kashon01/d01-vm-backup` as Proxmox Backup storage (ID: `d01-vm-backup`):
-      Datacenter → Storage → Add → Directory → path: `/kashon01/d01-vm-backup`, content: Backup;
-      retention set in storage Edit → Prune options — **no sanoid on this dataset**.
-      (Proxmox storage path isn't editable after creation — had to delete and recreate
-      the storage entry rather than just renaming it after the `zfs rename`.)
-- [ ] Install sanoid (`apt install sanoid`); write `/etc/sanoid/sanoid.conf` (see §13 for full config);
-      `systemctl enable --now sanoid.timer` — snapshots and pruning run automatically.
-      **Not yet written for the new 7 snapshotted datasets** — retention windows for
-      `d03-tv`/`d04-media`/`d05-dokumenti`/`d08-vid-archiv` still need deciding (only
-      `d02-minecraft`'s policy carries over unchanged from the old `d04-mc` template).
-      Currently monolit still runs the default Proxmox-bundled `zfs-auto-snapshot`
-      (same fixed policy for every dataset, no per-dataset control) — decided to replace
-      it with sanoid rather than run both.
-- [ ] Set up daily cron to copy configs to `d05-dokumenti` (add to `crontab -e` on Proxmox host):
-      ```
-      0 3 * * * rsync -a /etc/pve/ /kashon01/d05-dokumenti/pve/
-      0 3 * * * rsync -a /etc/nut/ /kashon01/d05-dokumenti/nut/
-      ```
-- [x] Directory Mappings (Datacenter → Resource Mappings → Directory) — note these store a
-      fixed host **path**, not a live reference to the ZFS dataset: a `zfs rename` does
-      **not** update them, the old mapping just silently points at a path that no longer
-      exists. `d02-minecraft`'s mapping had to be deleted and recreated after its rename,
-      same as the retired ones:
-      ```
-      d02-minecraft   →  /kashon01/d02-minecraft
-      d03-tv          →  /kashon01/d03-tv
-      d04-media       →  /kashon01/d04-media
-      d05-dokumenti   →  /kashon01/d05-dokumenti
-      d06-knigi       →  /kashon01/d06-knigi
-      d07-muzika      →  /kashon01/d07-muzika
-      d08-vid-archiv  →  /kashon01/d08-vid-archiv
-      ```
-      (`d01-vm-backup` has no mapping — it's Proxmox backup storage only, never a guest mount.)
-- [x] VirtioFS shares on **home VM** (VM → Hardware → Add → VirtioFS) — one per mapping
-      above, tag matching dataset name. **Gotcha**: VirtioFS has no hot-unplug; removing
-      a device in Hardware only edits the VM's config, the host-side `virtiofsd` still
-      holds the directory open (blocking `zfs destroy` with "dataset is busy") until the
-      VM is actually rebooted.
-- [x] Declare mounts in **home VM** NixOS config (`hosts/homeserver/homeserver.nix`):
-      ```nix
-      fileSystems."/d02-minecraft"  = { device = "d02-minecraft";  fsType = "virtiofs"; };
-      fileSystems."/d03-tv"         = { device = "d03-tv";         fsType = "virtiofs"; };
-      fileSystems."/d04-media"      = { device = "d04-media";      fsType = "virtiofs"; };
-      fileSystems."/d05-dokumenti"  = { device = "d05-dokumenti";  fsType = "virtiofs"; };
-      fileSystems."/d06-knigi"      = { device = "d06-knigi";      fsType = "virtiofs"; };
-      fileSystems."/d07-muzika"     = { device = "d07-muzika";     fsType = "virtiofs"; };
-      fileSystems."/d08-vid-archiv" = { device = "d08-vid-archiv"; fsType = "virtiofs"; };
-      ```
-      (`d01-vm-backup` not declared here either, same reason as above.)
+All baremetal/Proxmox-GUI setup (not Nix-reproducible) — host networking, UPS/NUT, ZFS
+pool + datasets, Directory Mappings, VirtioFS shares, sanoid snapshot management — moved
+to **`notes/proxmox-baremetal.md`**. The NixOS-managed half of Stage 6 (`dns.vafla.eu`/
+`proxmox.vafla.eu` Technitium records and nginx vhosts) stays listed in Stage 5 above.
 
 ---
 
@@ -643,144 +558,9 @@ SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
   `systemd.services.<name>.serviceConfig.ExecStartPre` instead (runs as the same
   DynamicUser, inside the same chroot, closure auto-added to the confinement bind list).
 
-### Proxmox host on tailnet + UPS plan
-
-#### Layout
-
-```
-EG-UPS-033 (USB — direct, no passthrough)
-      │
-Proxmox baremetal (Debian)
-  ├── Tailscale (apt) — tailnet member, for Proxmox GUI access
-  ├── NUT server (apt) — reads UPS via USB; SHUTDOWNCMD="shutdown -h now"
-  │     └── Proxmox pve-guests.service gracefully stops all VMs on host shutdown
-  └── home VM (NixOS)
-        └── Tailscale (tailnet member)
-```
-
-NUT lives on the baremetal because the shutdown path must be direct: when the UPS
-hits critical battery, `upsmon` runs `shutdown -h now` on the host, and
-`pve-guests.service` gracefully stops all VMs before the host powers off.
-Putting NUT in a VM creates a race — Proxmox might kill the VM before it has
-finished signalling the host to shut down.
-
-#### Step 1 — Proxmox host on the tailnet
-
-The Proxmox web GUI (port 8006) runs on the baremetal. Install Tailscale with `apt`
-(NixOS modules don't work on Debian):
-
-```bash
-apt install tailscale
-tailscale up --login-server https://headscale.vafla.eu
-# then on VPS: headscale nodes register --user koko --key <key>
-```
-
-Technitium record: `proxmox.vafla.eu` → VPS tailscale IP — nginx proxies to Proxmox
-baremetal `:8006`, no central SSO (`proxyWebsockets = true` required for the console).
-
-Access GUI at `https://proxmox.vafla.eu` on the tailnet.
-
-#### Step 2 — NUT on Proxmox baremetal (Debian, `apt`)
-
-USB is plugged directly into the Proxmox host — no passthrough needed.
-See `notes/ups/` for the exact `/etc/nut/` config files and the shutdown script.
-
-Key points:
-- `upsmon.conf`: `SHUTDOWNCMD "/sbin/shutdown -h now"`
-- Proxmox's `pve-guests.service` fires during systemd shutdown and stops all VMs
-  gracefully before the host powers off — no custom Proxmox API scripting needed
-
-### ZFS datasets + sanoid snapshot plan
-
-#### Datasets on `kashon01` (RAID-1 mirror)
-
-| Dataset | Mounted in | Purpose |
-|---|---|---|
-| `kashon01/d01-vm-backup` | Proxmox backup storage (not a guest mount) | VM backups (`dump/`) — retention managed by Proxmox, no sanoid snapshots |
-| `kashon01/d02-minecraft` | home VM `/d02-minecraft` (VirtioFS) | Minecraft server data |
-| `kashon01/d03-tv` | home VM `/d03-tv` (VirtioFS) | TV library |
-| `kashon01/d04-media` | home VM `/d04-media` (VirtioFS) | General media |
-| `kashon01/d05-dokumenti` | home VM `/d05-dokumenti` (VirtioFS) | Documents + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron) |
-| `kashon01/d06-knigi` | home VM `/d06-knigi` (VirtioFS) | Calibre library (dataset root is the library root, no subfolder) |
-| `kashon01/d07-muzika` | home VM `/d07-muzika` (VirtioFS) | Music library |
-| `kashon01/d08-vid-archiv` | home VM `/d08-vid-archiv` (VirtioFS) | Video archive |
-
-(Renamed/reorganized from the original 4 generic datasets — `d03-vm-backup`→`d01-vm-backup`,
-`d04-mc`→`d02-minecraft`; `d01-archiv`/`d02-lichni` destroyed, replaced by the 6 new
-purpose-specific ones. All were empty at the time, no data migration needed.)
-
-#### Sanoid snapshot retention (`/etc/sanoid/sanoid.conf` on Proxmox baremetal)
-
-**Not yet installed.** Proxmox's bundled `zfs-auto-snapshot` is currently running instead
-(default on Proxmox, same fixed policy pool-wide, not per-dataset) — decided to replace it
-with sanoid for per-dataset control, but retention windows for `d03-tv`/`d04-media`/
-`d05-dokumenti`/`d06-knigi`/`d07-muzika`/`d08-vid-archiv` still need deciding based on actual
-usage patterns once there's real content in them. Only the minecraft template carries over
-unchanged from the old `d04-mc` config below as a starting point:
-
-Each number = how many snapshots of that type to keep. Sanoid takes and prunes automatically via systemd timer.
-
-```ini
-[kashon01/d02-minecraft]
-  use_template = minecraft
-
-# d01-vm-backup: NO sanoid — Proxmox manages VZDump retention directly
-# remaining 6 datasets: templates TBD
-
-[template_minecraft]
-  daily   = 7    # last 7 days
-  weekly  = 4    # last 4 weeks
-  monthly = 0
-  autosnap = yes
-  autoprune = yes
-```
-
-> **`d03-vm-backup` note**: No sanoid snapshots on this dataset. Proxmox manages VZDump
-> file retention directly (set keep last 3–5 per VM in Datacenter → Storage → vm-backup → Edit).
-> ZFS snapshots on a backup dataset would silently hold deleted VZDump files alive,
-> consuming large amounts of space — avoid entirely.
-
-#### Using snapshots
-
-Snapshots are accessible as a read-only directory tree — no special tools needed to read files:
-
-```
-/<mountpoint>/.zfs/snapshot/<snapshot-name>/
-```
-
-Example — browse and recover a file:
-```bash
-ls /d06-knigi/.zfs/snapshot/
-cp /d06-knigi/.zfs/snapshot/autosnap_2025-10-10_daily/path/to/file.txt ~/recovered.txt
-```
-
-List all snapshots for a dataset:
-```bash
-zfs list -t snapshot kashon01/d06-knigi
-```
-
-Roll back an entire dataset to a snapshot (destructive — all changes since the snapshot are lost):
-```bash
-zfs rollback kashon01/d06-knigi@autosnap_2025-10-10_daily
-```
-
-Clone a snapshot into a new writable dataset (non-destructive — original dataset unchanged):
-```bash
-zfs clone kashon01/d06-knigi@autosnap_2025-10-10_daily kashon01/d06-knigi-recovered
-```
-
-#### Summary
-
-| Component | Where | How reached |
-|---|---|---|
-| Tailscale | Proxmox baremetal (apt) + each VM | tailnet |
-| Proxmox web GUI | VPS nginx → Proxmox baremetal `:8006` | tailnet only (`proxmox.vafla.eu`) |
-| SSH — Proxmox baremetal | Proxmox baremetal | tailnet (`100.64.0.4`) + local LAN IP |
-| SSH — home VM | `homeserver` | tailnet (`100.64.0.5`) + static LAN (`192.168.100.56`) |
-| UPS USB | Direct to Proxmox baremetal | local USB on host |
-| NUT server | Proxmox baremetal (apt) | bridge subnet (port 3493) |
-| Homarr | home VM | tailnet-only (`homarr.vafla.eu`) |
-| Shutdown | baremetal NUT → `shutdown -h now` | pve-guests.service stops VMs first |
+Full baremetal/Proxmox-GUI setup detail (UPS/NUT, ZFS pool + datasets, Directory
+Mappings, VirtioFS shares, sanoid snapshot management, VM hardware config) lives in
+**`notes/proxmox-baremetal.md`** — not Nix-reproducible, kept separate from this doc.
 
 ---
 
