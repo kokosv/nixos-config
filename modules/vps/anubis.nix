@@ -113,6 +113,26 @@
     services.nginx.virtualHosts."nazhivo.vafla.eu" = {
       forceSSL = true;
       useACMEHost = "vafla.eu";
+      # Owncast's /admin (SPA shell + all /api/admin/* calls) has its own built-in
+      # HTTP Basic Auth (its own admin login). Only one Authorization header can be
+      # sent per request, so wrapping these paths in the site-wide auth_basic below
+      # too made them collide — nginx forwarded the site credentials straight
+      # through, which Owncast then rejected as invalid admin creds (silent 401s,
+      # no WWW-Authenticate challenge, admin SPA crashing instead of showing its
+      # own login). Excluded here so Owncast's own admin auth works standalone,
+      # same as before the site-wide gate was added.
+      locations."/admin" = {
+        proxyPass = "http://unix:/run/anubis/anubis-nazhivo/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+        '';
+      };
+      locations."/api/admin" = {
+        proxyPass = "http://unix:/run/anubis/anubis-nazhivo/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+        '';
+      };
       locations."/" = {
         proxyPass = "http://unix:/run/anubis/anubis-nazhivo/anubis.sock";
         extraConfig = ''
