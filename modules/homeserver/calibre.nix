@@ -12,7 +12,9 @@
       host = "0.0.0.0"; # must be reachable from the VPS over tailscale
       port = 8081;
       auth.enable = true;
-      auth.mode = "auto";
+      # "auto" picks Digest for OPDS requests specifically — most e-reader OPDS
+      # clients (Moon+ Reader included) only support Basic, not Digest.
+      auth.mode = "basic";
       # Created once via: calibre-server --userdb=/var/lib/calibre-server/users.sqlite
       # --manage-users -- add <user> <password>  (see notes/homelab-architecture.md)
       auth.userDb = "/var/lib/calibre-server/users.sqlite";
