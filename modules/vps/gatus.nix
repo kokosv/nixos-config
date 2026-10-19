@@ -169,6 +169,14 @@
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
+          {
+            name = "qBittorrent";
+            group = "private";
+            enabled = true;
+            url = "https://torrent.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
 
         ];
       };

@@ -18,6 +18,7 @@
         proxmoxProxy
         headplane
         calibreProxy
+        qbittorrentProxy
         gatus
         fail2ban
       ])
