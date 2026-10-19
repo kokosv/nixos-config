@@ -1,9 +1,15 @@
 { lib, ... }: {
   options.vps.gatus = lib.mkOption { type = lib.types.deferredModule; };
 
-  config.vps.gatus = { ... }: {
+  config.vps.gatus = { config, ... }: {
+    age.secrets.nazhivo-gatus-auth = {
+      file = ../../secrets/nazhivo-gatus-auth.age;
+      owner = "root"; # read by systemd (EnvironmentFile=) before gatus's DynamicUser exec, not by gatus itself
+    };
+
     services.gatus = {
       enable = true;
+      environmentFile = config.age.secrets.nazhivo-gatus-auth.path;
       settings = {
         web.port = 8081;
         endpoints = [
@@ -77,7 +83,7 @@
             url = "https://nazhivo.vafla.eu";
             interval = "5m";
             # vhost is behind nginx auth_basic — credentials needed or every check 401s.
-            headers.Authorization = "Basic dXNlcjozYmRiODA3OWM1MWUyYTRkZmZkMDdjMmJkYjQzYmU0Yg==";
+            headers.Authorization = "\${NAZHIVO_AUTH}";
             conditions = [ "[STATUS] == 200" ];
           }
           {

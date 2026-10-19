@@ -49,6 +49,7 @@ in
   "secrets/desec-token.age".publicKeys = [ vps koko recovery ];
   "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko recovery ];
   "secrets/nazhivo-htpasswd.age".publicKeys = [ vps koko recovery ];
+  "secrets/nazhivo-gatus-auth.age".publicKeys = [ vps koko recovery ];
 
   # ── homeserver secrets ────────────────────────────────────────────────────────
   "secrets/enclosed-env.age".publicKeys = [ homeserver koko recovery ];
