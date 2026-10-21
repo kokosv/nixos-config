@@ -286,14 +286,33 @@ Current secrets:
 
 ---
 
-## 10. Tailnet DNS — Technitium + DNS4EU fallback
+## 10. Tailnet DNS — Technitium as sole resolver, forwarding to DNS4EU
 
 Technitium runs on the home VM (`homeserver`, `100.64.0.5`) via `services.technitium-dns-server`
 (`modules/homeserver/technitium.nix`). `openFirewall = false` — `tailscale0` is already trusted.
 
-Headscale split-DNS (`modules/vps/headscale.nix`): `nameservers.split."vafla.eu" = [
-"100.64.0.5" ]`, `nameservers.global = [ "86.54.11.100" ]`. Every tailnet device sends
-`vafla.eu` queries to Technitium, everything else to DNS4EU.
+Headscale (`modules/vps/headscale.nix`): `nameservers.global = [ "100.64.0.5" ]` — every
+tailnet device sends **all** DNS queries to Technitium, not just `vafla.eu`. Technitium
+itself forwards anything outside its own zones to DNS4EU, set via Technitium's own admin
+UI (Settings → DNS → Forwarders), not declared in Nix:
+- Protocol: **DNS-over-TLS**, forwarders `unfiltered.joindns4.eu (86.54.11.100)` and
+  `unfiltered.joindns4.eu (86.54.11.200)` — encrypts the one remaining plaintext leg
+  (Technitium → DNS4EU) so the home ISP can't see it either. Verified via packet capture
+  on homeserver: all traffic to DNS4EU is TCP/853 (TLS), no plaintext port 53.
+- Blocking: enabled, type **NX Domain**.
+- Query logging: enabled.
+
+Chosen this way (Technitium as the sole pushed resolver, forwarding internally) so
+Technitium's blocking/logging apply to all tailnet DNS traffic, not just `vafla.eu`.
+
+> Originally this was split-DNS (`nameservers.split."vafla.eu"` + a separate
+> `nameservers.global` for DNS4EU) specifically to avoid making Technitium a single
+> point of failure for all tailnet DNS. Switched because Tailscale doesn't support true
+> ordered primary/fallback for multiple global nameservers — listing both Technitium and
+> DNS4EU in `nameservers.global` just non-deterministically load-balances between them per
+> query, not "try Technitium, fall back to DNS4EU." Accepted trade-off: if the homeserver
+> VM is down, **all** tailnet DNS breaks now, not just `vafla.eu` — there's no
+> automatic client-side failover either way with Tailscale's current DNS push model.
 
 **Zone structure in Technitium** — `vafla.eu` itself is a **Forwarder** zone (→
 `86.54.11.100`), not Primary. Tailnet-specific overrides live in their own, more specific
@@ -538,6 +557,21 @@ to **`notes/proxmox-baremetal.md`**. The NixOS-managed half of Stage 6 (`dns.vaf
 ---
 
 ## 13. Open items / not yet finalized
+
+### Future idea — Tailscale exit node + VPN layered on top
+
+Not implemented, parked for later. Goal: hide destination traffic (not just DNS, which is
+already handled — see §10) from each device's own local network (mobile carrier, café
+WiFi) when on the tailnet.
+
+- Exit node candidate: homeserver VM or the VPS (VPS has much better bandwidth — home's
+  300Mbps upload becomes the ceiling for *all* traffic through it otherwise, including
+  qBittorrent downloads).
+- VPN provider: **Mullvad, paid with cash** — runs as a second WireGuard client on the
+  exit node; policy routing sends only the phone/laptop's exit-node traffic through it,
+  not the VM's own services (SSH, Technitium, etc.).
+- Doesn't eliminate destination visibility, just shifts it from the local network to
+  Mullvad instead of the home ISP / VPS provider.
 
 ### Gotchas hit provisioning the `homeserver` VM (for next time)
 

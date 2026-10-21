@@ -11,8 +11,8 @@
         server_url = "https://headscale.vafla.eu";
         dns = {
           base_domain = "tailnet.vafla.eu";
-          nameservers.global = [ "86.54.11.100" ]; # DNS4EU — catch-all for everything else
-          nameservers.split."vafla.eu" = [ "100.64.0.5" ]; # Technitium — authoritative for vafla.eu
+          # Technitium is the sole resolver — see §10 in the architecture doc.
+          nameservers.global = [ "100.64.0.5" ];
         };
         derp.server = {
           enabled = true;
