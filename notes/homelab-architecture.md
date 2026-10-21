@@ -378,6 +378,8 @@ access control.
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
 | `headplane.vafla.eu` | Headplane (Headscale web UI) — **deployed** | VPS localhost:3000 |
 | `proxmox.vafla.eu` | Proxmox web GUI — **deployed** | Proxmox baremetal (`100.64.0.4:8006`) |
+| `torrent.vafla.eu` | qBittorrent — **deployed**. `WebUI\ReverseProxySupportEnabled`/`TrustedReverseProxiesList` set live (not declared in nix — qBittorrent manages this file itself, a nix-declared `serverConfig` would overwrite runtime password changes on every rebuild) | home VM (`100.64.0.5:8090`) |
+| `tursi.vafla.eu` | 4get (metasearch, replaces the abandoned SearXNG build) — **deployed**. No nixpkgs package; built from source (`pkgs.fetchgit`) with build-time-patched `config.php`, served via a local nginx+phpfpm pair on the home VM (first local nginx instance in this setup — everywhere else exposes its own HTTP server). Outbound scraping uses `curl-impersonate` (Firefox TLS fingerprint spoofing) | home VM (`100.64.0.5:8098`) |
 
 ### DNS summary
 
@@ -425,14 +427,16 @@ own tier below) and tested before moving to the next:
 3. `dok.vafla.eu` + `dokument.vafla.eu` (Cryptpad) — tier 0b ✓ deployed
 4. `nazhivo.vafla.eu` (Owncast) — tier 0b ✓ deployed
 5. `knigi.vafla.eu` (Calibre) — tier 1 ✓ deployed
-6. `homarr.vafla.eu` (Homarr) — tier 1
-7. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
-8. `rechnik.vafla.eu` — tier 0b
-9. `git.vafla.eu` (Forgejo) — tier 0b
-10. `*arr.vafla.eu` stack (tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b) — needs planning first
-11. `tube.vafla.eu` (Peertube) — tier 0b
-12. `media.vafla.eu` (Immich) — tier 0b
-13. `muzika.vafla.eu` (Navidrome) — tier 1
+6. `torrent.vafla.eu` (qBittorrent) — tier 1 ✓ deployed
+7. `tursi.vafla.eu` (4get) — tier 1 ✓ deployed
+8. `homarr.vafla.eu` (Homarr) — tier 1
+9. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
+10. `rechnik.vafla.eu` — tier 0b
+11. `git.vafla.eu` (Forgejo) — tier 0b
+12. Remaining \*arr stack (Prowlarr/Radarr/Sonarr/Bazarr, tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b)
+13. `tube.vafla.eu` (Peertube) — tier 0b
+14. `media.vafla.eu` (Immich) — tier 0b
+15. `muzika.vafla.eu` (Navidrome) — tier 1
 
 ---
 
@@ -470,6 +474,8 @@ own tier below) and tested before moving to the next:
 | `dns.vafla.eu` | 1 | Technitium web UI |
 | `headplane.vafla.eu` | 1 | Headplane — VPS-local backend |
 | `proxmox.vafla.eu` | 1 | Proxmox web GUI — tailnet only, no Anubis; nginx → Proxmox baremetal tailscale IP:8006 |
+| `torrent.vafla.eu` | 1 | qBittorrent |
+| `tursi.vafla.eu` | 1 | 4get |
 
 SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
 (`100.64.0.4`, `100.64.0.5`) — no dedicated SSH subdomain needed.
