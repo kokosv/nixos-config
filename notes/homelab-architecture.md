@@ -74,7 +74,8 @@ documented separately in `notes/proxmox-baremetal.md`.
 
 - **Registrar:** ClouDNS (domain registration only)
 - **DNS hosting:** deSEC.io (free, DNSSEC auto-signed, REST API for lego)
-- **ACME:** Let's Encrypt DNS-01 via lego (`dnsProvider = "desec"`)
+- **ACME:** ZeroSSL (EU/Austria-based) DNS-01 via lego (`dnsProvider = "desec"`), EAB required
+  (`LEGO_EAB_KID`/`LEGO_EAB_HMAC` in `secrets/zerossl-acme-env.age`)
 - **Cert:** `*.vafla.eu` + `vafla.eu` + `map.mc.vafla.eu` — one wildcard covers all subdomains
 - **DNSSEC:** deSEC auto-signs; DS record (SHA-256) added at ClouDNS registrar
 - **HSTS:** set site-wide via `commonHttpConfig` in `modules/vps/nginx.nix` (not included

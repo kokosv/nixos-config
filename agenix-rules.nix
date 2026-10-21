@@ -46,7 +46,7 @@ in
   "secrets/ssh-private-key.age".publicKeys = allKeys;
 
   # ── vps secrets ──────────────────────────────────────────────────────────────
-  "secrets/desec-token.age".publicKeys = [ vps koko recovery ];
+  "secrets/zerossl-acme-env.age".publicKeys = [ vps koko recovery ];
   "secrets/headplane-cookie-secret.age".publicKeys = [ vps koko recovery ];
   "secrets/nazhivo-htpasswd.age".publicKeys = [ vps koko recovery ];
   "secrets/nazhivo-gatus-auth.age".publicKeys = [ vps koko recovery ];
