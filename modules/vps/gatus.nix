@@ -183,6 +183,14 @@
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
+          {
+            name = "4get";
+            group = "private";
+            enabled = true;
+            url = "https://tursi.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
 
         ];
       };
