@@ -19,6 +19,7 @@
         headplane
         calibreProxy
         qbittorrentProxy
+        searxngProxy
         gatus
         fail2ban
       ])

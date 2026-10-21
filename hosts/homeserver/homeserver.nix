@@ -16,6 +16,7 @@
         calibre
         mediaStorage
         qbittorrent
+        searxng
       ])
       ++ [
         ./_homeserver/hardware-configuration.nix

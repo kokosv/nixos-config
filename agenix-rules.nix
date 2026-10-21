@@ -53,6 +53,7 @@ in
 
   # ── homeserver secrets ────────────────────────────────────────────────────────
   "secrets/enclosed-env.age".publicKeys = [ homeserver koko recovery ];
+  "secrets/searxng-secret-key.age".publicKeys = [ homeserver koko recovery ];
 
   # ── host-specific secrets (examples) ─────────────────────────────────────────
   # "secrets/kt480-wifi-password.age".publicKeys = [ kt480 koko ];
