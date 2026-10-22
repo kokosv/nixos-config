@@ -12,6 +12,10 @@
       nix-direnv.enable = true;
       enableBashIntegration = true;
       enableZshIntegration = true;
+      config.global = {
+        log_format = "-";
+        log_filter = "^$";
+      };
     };
   };
 }
