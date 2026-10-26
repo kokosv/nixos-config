@@ -27,6 +27,7 @@
       suckit # recursive website content download
       screenkey
       bc # calc
+      freecad
     ];
   };
 }
