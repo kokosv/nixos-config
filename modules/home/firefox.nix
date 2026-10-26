@@ -20,9 +20,20 @@
       profiles.default = {
 
         search = {
-          default = "ddg";
-          privateDefault = "ddg";
+          # default = "ddg";
+          # default = "ddg";
+          default = "tursi";
+          privateDefault = "tursi";
+
           force = true; # force override to skip having to delete the search.json.mozlz4.hm-backup file every rebuild
+
+          engines = {
+            tursi = {
+              name = "tursi";
+              urls = [ { template = "https://tursi.vafla.eu/web?s={searchTerms}"; } ];
+              definedAliases = [ "@tursi" ];
+            };
+          };
         };
 
         userContent = ''
