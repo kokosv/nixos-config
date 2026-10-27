@@ -46,5 +46,26 @@
         ''
       } /var/lib/cryptpad/customize/application_config.js"
     ];
+
+    # Nightly mirror of CryptPad's data to the dataset — CryptPad's own storage lives on
+    # the VM's root disk, not a dataset (bind-mounting a VirtioFS path into its chroot
+    # confinement isn't straightforward), so this backs it up out rather than moving it.
+    systemd.services.cryptpad-backup = {
+      description = "Backup CryptPad data to d05-dokumenti";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /d05-dokumenti/cryptpad-backup";
+        ExecStart = "${pkgs.rsync}/bin/rsync -a --delete /var/lib/cryptpad/datastore /var/lib/cryptpad/blob /var/lib/cryptpad/block /var/lib/cryptpad/data /d05-dokumenti/cryptpad-backup/";
+      };
+    };
+
+    systemd.timers.cryptpad-backup = {
+      description = "Nightly CryptPad backup timer";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "02:00";
+        Persistent = true;
+      };
+    };
   };
 }

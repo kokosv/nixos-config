@@ -163,6 +163,17 @@
           if ($geo_blocked) { return 403; }
         '';
       };
+      # CryptPad's own GET handler for /blob/ never sets Access-Control-Allow-Origin
+      # (only its HEAD/OPTIONS handlers do) — the sandboxed dokument.vafla.eu iframe's
+      # cross-origin blob fetch (needed to load a converted OnlyOffice document back in)
+      # gets silently CORS-blocked without this, leaving the editor open but empty.
+      locations."/blob/" = {
+        proxyPass = "http://unix:/run/anubis/anubis-dok/anubis.sock";
+        extraConfig = ''
+          if ($geo_blocked) { return 403; }
+          add_header Access-Control-Allow-Origin "https://dokument.vafla.eu" always;
+        '';
+      };
       locations."/cryptpad_websocket" = {
         proxyPass = "http://100.64.0.5:3003";
         proxyWebsockets = true;
