@@ -191,6 +191,14 @@
             interval = "5m";
             conditions = [ "[STATUS] == 200" ];
           }
+          {
+            name = "Prowlarr";
+            group = "private";
+            enabled = true;
+            url = "https://prowlarr.vafla.eu";
+            interval = "5m";
+            conditions = [ "[STATUS] == 200" ];
+          }
 
         ];
       };

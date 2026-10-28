@@ -20,6 +20,7 @@
         calibreProxy
         qbittorrentProxy
         fourgetProxy
+        prowlarrProxy
         gatus
         fail2ban
       ])

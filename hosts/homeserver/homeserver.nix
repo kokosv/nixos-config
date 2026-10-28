@@ -17,6 +17,7 @@
         mediaStorage
         qbittorrent
         fourget
+        prowlarr
       ])
       ++ [
         ./_homeserver/hardware-configuration.nix
