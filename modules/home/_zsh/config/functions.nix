@@ -37,9 +37,9 @@
   }
 
   # Random hex string (defaults to 32 bytes)
-  passrnd() {
+  genrndpass() {
     local n=''${1:-32}
-    openssl rand -hex "$n"
+    openssl rand -base64 "$n"
   }
 
   # Rebuild a NixOS host by name
