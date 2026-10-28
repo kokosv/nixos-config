@@ -22,6 +22,10 @@
 - [ ] NUT / UPS — **abandoned**, this UPS isn't compatible with NUT; not pursuing
 - [ ] Daily cron to copy `/etc/pve` + `/etc/nut` configs to `d05-dokumenti` — not set up
       (the `/etc/nut` half is moot now NUT's abandoned; `/etc/pve` backup still worth doing)
+- [ ] Drive health monitoring (`smartd` self-tests, later Scrutiny + ntfy/Homarr) — planned,
+      not set up
+- [ ] Full ntfy setup as central notification hub (disk health/Scrutiny, Gatus, Jellyfin,
+      Homarr) — see `notes/homelab-architecture.md` §13 — planned, not set up
 
 ---
 
@@ -34,6 +38,29 @@
 - Networking: `vmbr0` — Proxmox's default Linux bridge. VMs attach to this for LAN
   connectivity (`192.168.100.0/24`, gateway `192.168.100.1`) — the `homeserver` VM's
   `ens18` interface is bridged through it.
+
+### Physical drives
+
+- `nvme0n1`, `nvme1n1` — boot disk + `fastvm` (LVM-thin, VM disks)
+- `sda` (Seagate IronWolf), `sdb` (WD Gold) — the `kashon01` ZFS mirror, 14TB each
+
+> Seagate's SMART raw values for `Raw_Read_Error_Rate`/`Seek_Error_Rate` are huge by
+> design — vendor-specific packed encoding (e.g. seek-error count + total-seek count
+> packed into one field), not literal error counts. WD reports these as plain counts
+> instead, hence `sdb` showing `0`. Judge health by **Normalized vs Threshold**, not the
+> raw number — both drives pass comfortably (`Failing: -` on every attribute, overall
+> `PASSED`). Wearout `N/A` on both is also expected — it's an SSD/NVMe-only metric.
+
+**Health monitoring — planned, not yet set up**:
+- `smartmontools`/`smartd` on monolit (manual, Debian, apt install — outside the flake):
+  weekly short + monthly long self-test. Negligible wear impact — self-tests are
+  read-only, and polling SMART attributes is just reading firmware counters, not real
+  disk activity.
+- Later, for a dashboard + advance notifications: **Scrutiny** — split architecture,
+  collector (needs `smartctl` + physical disk access) runs on monolit, dashboard +
+  InfluxDB can run on homeserver (NixOS, in the flake), collector points at it via
+  `COLLECTOR_API_ENDPOINT` over the tailnet. Alerts go out via ntfy — see "Future idea —
+  ntfy as a central notification hub" in `notes/homelab-architecture.md` §13.
 
 ---
 
@@ -122,10 +149,11 @@ zfs create kashon01/d08-vid-archiv
 | `kashon01/d02-minecraft` | home VM `/d02-minecraft` (VirtioFS) | Minecraft server data |
 | `kashon01/d03-tv` | home VM `/d03-tv` (VirtioFS) | TV library |
 | `kashon01/d04-media` | home VM `/d04-media` (VirtioFS) | General media |
-| `kashon01/d05-dokumenti` | home VM `/d05-dokumenti` (VirtioFS) | Documents + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron, not yet set up) |
+| `kashon01/d05-dokumenti` | home VM `/d05-dokumenti` (VirtioFS) | Documents + `/etc/pve` → `pve/`, `/etc/nut` → `nut/` (host cron, not yet set up). Also receives CryptPad's data via a nightly rsync mirror (`cryptpad-backup.timer`) — CryptPad's live storage is `/var/lib/cryptpad` on the VM's root disk, **not** this dataset directly |
 | `kashon01/d06-knigi` | home VM `/d06-knigi` (VirtioFS) | Calibre library — dataset root **is** the library root, no subfolder |
 | `kashon01/d07-muzika` | home VM `/d07-muzika` (VirtioFS) | Music library |
 | `kashon01/d08-vid-archiv` | home VM `/d08-vid-archiv` (VirtioFS) | Video archive |
+| `kashon01/d09-kino` | home VM `/d09-kino` (VirtioFS) | Kino (movies) library |
 
 `kashon01` itself was never registered as a Proxmox ZFS-type storage backend — VM disks
 live on `fastvm` instead, not on `kashon01`. The pool is only ever consumed via the
@@ -142,6 +170,12 @@ files alive, consuming large amounts of space.
 > kashon01/d03-vm-backup kashon01/d01-vm-backup`, had to delete and recreate the storage
 > entry entirely rather than just editing the path.
 
+**Full VM recreation from a backup alone**: a VZDump backup bundles both the disk(s) and
+the VM's hardware config (CPU/RAM, NICs, VirtioFS device entries) — Restore recreates the
+whole VM from just the backup file. Not included: the Directory Mappings themselves (host
+-level resource, not part of the VM) — recreate them (same names, see below) on the target
+host first, or the restored VM's VirtioFS devices won't have anything to attach to.
+
 ### Directory Mappings (Datacenter → Resource Mappings → Directory)
 
 ```
@@ -152,6 +186,7 @@ d05-dokumenti   →  /kashon01/d05-dokumenti
 d06-knigi       →  /kashon01/d06-knigi
 d07-muzika      →  /kashon01/d07-muzika
 d08-vid-archiv  →  /kashon01/d08-vid-archiv
+d09-kino        →  /kashon01/d09-kino
 ```
 (`d01-vm-backup` has no mapping — it's backup storage only, never a guest mount.)
 
@@ -210,7 +245,7 @@ apt install sanoid
   use_template = personal
 
 [kashon01/d05-dokumenti]
-  use_template = archival
+  use_template = documents
 
 [kashon01/d06-knigi]
   use_template = archival
@@ -221,9 +256,21 @@ apt install sanoid
 [kashon01/d08-vid-archiv]
   use_template = archival
 
+[kashon01/d09-kino]
+  use_template = archival
+
 # d01-vm-backup: NO sanoid — Proxmox manages VZDump retention directly
 
 [template_minecraft]
+  hourly  = 24
+  daily   = 7
+  weekly  = 4
+  monthly = 0
+  yearly  = 0
+  autosnap = yes
+  autoprune = yes
+
+[template_documents]
   hourly  = 0
   daily   = 7
   weekly  = 4
@@ -268,25 +315,46 @@ zfs list -t snapshot | grep kashon01
 
 ### Using snapshots
 
-Read-only directory tree, no special tools needed:
+**Browsing and recovering files works from either side** — VirtioFS passes `.zfs`
+through transparently, so it's reachable both on the Proxmox host (`/kashon01/<dataset>`)
+and inside the home VM (`/<dataset>`), no host-hopping required for a simple file
+recovery. `.zfs` is hidden from directory *enumeration* by ZFS design though — `ls -a` on
+the parent will never show it on either side; it still exists and works if referenced by
+its exact path.
+
 ```
-/<mountpoint>/.zfs/snapshot/<snapshot-name>/
+/<dataset>/.zfs/snapshot/<snapshot-name>/
 ```
 
 ```bash
-# browse and recover a file
+# browse one directly — ls -a on the parent won't reveal .zfs, name it explicitly
+# (works from either the home VM at /d06-knigi/... or the host at /kashon01/d06-knigi/...)
 ls /d06-knigi/.zfs/snapshot/
-cp /d06-knigi/.zfs/snapshot/autosnap_2026-10-16_daily/path/to/file.txt ~/recovered.txt
+ls /d06-knigi/.zfs/snapshot/autosnap_2026-10-16_daily/
 
-# list all snapshots for a dataset
-zfs list -t snapshot kashon01/d06-knigi
+# recover one file — copy it back out of the snapshot into the live dataset
+cp /d06-knigi/.zfs/snapshot/autosnap_2026-10-16_daily/path/to/file.txt /d06-knigi/
+```
 
-# roll back a dataset (destructive — all changes since the snapshot are lost)
+**Actual ZFS pool administration (`zfs list`, `rollback`, `clone`) only works on the
+Proxmox host** — the VM has no `zfs` tooling or pool access, just the shared directory
+view via VirtioFS:
+
+```bash
+# list snapshots for a dataset (sorted oldest to newest) — host only
+zfs list -t snapshot -o name,creation -s creation | grep d06-knigi
+
+# roll back an entire dataset (destructive — all changes since the snapshot are lost)
 zfs rollback kashon01/d06-knigi@autosnap_2026-10-16_daily
 
-# clone a snapshot into a new writable dataset (non-destructive)
+# clone a snapshot into a new writable dataset (non-destructive, for a full-tree restore
+# without touching the live dataset)
 zfs clone kashon01/d06-knigi@autosnap_2026-10-16_daily kashon01/d06-knigi-recovered
 ```
+
+The `cp`-from-snapshot route is the one to reach for almost always; `zfs rollback` is only
+for "I want the whole dataset back exactly as it was," since it discards everything
+written after that snapshot.
 
 ---
 

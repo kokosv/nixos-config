@@ -358,7 +358,7 @@ own login, protected by fail2ban (§7).
 | `taina.vafla.eu` | Enclosed (secure note sharing) — **deployed**, own account-gated creation | home VM (`100.64.0.5:8787`) |
 | `git.vafla.eu` | Forgejo | home VM |
 | `nazhivo.vafla.eu` | Owncast — **deployed**. No hardware encoding (VM has no real GPU, software x264 only); 3 re-encoded quality variants (1080p/720p/480p, sized for ~5 viewers). Directory listing, search indexing, and Fediverse federation all disabled. nginx `auth_basic` in front of the whole vhost (`secrets/nazhivo-htpasswd.age`) — single shared login, not open to random visitors | home VM (`100.64.0.5:8080`) |
-| `dok.vafla.eu` | Cryptpad — **deployed**. Anonymous pad creation/storage blocked (`customize/application_config.js`). Registration closes via admin panel after creating one account — manual, can't be pre-configured. Single-user usage, sharing via direct link only | home VM (`100.64.0.5:3000`) |
+| `dok.vafla.eu` | Cryptpad — **deployed**. Anonymous pad creation/storage blocked (`customize/application_config.js`). Registration closes via admin panel after creating one account — manual, can't be pre-configured. Single-user usage, sharing via direct link only. **Known limitation**: importing a real `.xlsx`/`.ods`/`.docx`/`.pptx` into a new sheet/doc/presentation produces a blank document — nixpkgs's bundled OnlyOffice x2t converter (cryptpad 2025.9.0) ships with no font data, same failure class as the historical upstream bug cryptpad/cryptpad#1240. Not worth chasing further: CryptPad upstream replaced OnlyOffice entirely with "Euro-Office" in its 2026.10.0 release, and Euro-Office itself lands in nixpkgs with NixOS 26.11 — revisit once nixpkgs bumps the `cryptpad` package to a Euro-Office-based release and re-test import then. Markdown/code/kanban pad types (no OnlyOffice dependency) are unaffected | home VM (`100.64.0.5:3000`) |
 | `dokument.vafla.eu` | Cryptpad sandbox domain (iframe origin isolation, required by Cryptpad) — same backend as `dok.vafla.eu`, **no Anubis** (a separate PoW challenge breaks the iframe load — Anubis's challenge page lacks the cross-origin headers CryptPad expects, surfaces as a Firefox `NS_ERROR_DOM_COEP_FAILED`) | home VM (`100.64.0.5:3000`) |
 | `tube.vafla.eu` | Peertube | home VM |
 | `tv.vafla.eu` | Jellyfin | home VM |
@@ -379,7 +379,8 @@ access control.
 | `dns.vafla.eu` | Technitium web UI — **deployed** | home VM (`100.64.0.5:5380`) |
 | `headplane.vafla.eu` | Headplane (Headscale web UI) — **deployed** | VPS localhost:3000 |
 | `proxmox.vafla.eu` | Proxmox web GUI — **deployed** | Proxmox baremetal (`100.64.0.4:8006`) |
-| `torrent.vafla.eu` | qBittorrent — **deployed**. `WebUI\ReverseProxySupportEnabled`/`TrustedReverseProxiesList` set live (not declared in nix — qBittorrent manages this file itself, a nix-declared `serverConfig` would overwrite runtime password changes on every rebuild) | home VM (`100.64.0.5:8090`) |
+| `prowlarr.vafla.eu` | Prowlarr (indexer manager) — **deployed** | home VM (`100.64.0.5:9696`) |
+| `torrent.vafla.eu` | qBittorrent — **deployed**. `WebUI\ReverseProxySupportEnabled`/`TrustedReverseProxiesList` set live (not declared in nix — qBittorrent manages this file itself, a nix-declared `serverConfig` would overwrite runtime password changes on every rebuild). No seeding (can't seed): Seeding Limits → Ratio limit `0` → Pause torrent on reach (not Remove+files — that deletes the download too). Once Radarr/Sonarr exist, use their own "Remove completed downloads" setting instead — only removes the queue entry after the file is confirmed imported into the library | home VM (`100.64.0.5:8090`) |
 | `tursi.vafla.eu` | 4get (metasearch, replaces the abandoned SearXNG build) — **deployed**. No nixpkgs package; built from source (`pkgs.fetchgit`) with build-time-patched `config.php`, served via a local nginx+phpfpm pair on the home VM (first local nginx instance in this setup — everywhere else exposes its own HTTP server). Outbound scraping uses `curl-impersonate` (Firefox TLS fingerprint spoofing) | home VM (`100.64.0.5:8098`) |
 
 ### DNS summary
@@ -434,7 +435,8 @@ own tier below) and tested before moving to the next:
 9. MC server + `map.mc.vafla.eu` (Bluemap, tier 0b) + `mc.vafla.eu` (static info page, tier 0b)
 10. `rechnik.vafla.eu` — tier 0b
 11. `git.vafla.eu` (Forgejo) — tier 0b
-12. Remaining \*arr stack (Prowlarr/Radarr/Sonarr/Bazarr, tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b)
+12. `prowlarr.vafla.eu` (Prowlarr) — tier 1 ✓ deployed. Remaining \*arr stack
+    (Radarr/Sonarr/Bazarr, tier 1) + `tv.vafla.eu` (Jellyfin, tier 0b)
 13. `tube.vafla.eu` (Peertube) — tier 0b
 14. `media.vafla.eu` (Immich) — tier 0b
 15. `muzika.vafla.eu` (Navidrome) — tier 1
@@ -476,6 +478,7 @@ own tier below) and tested before moving to the next:
 | `headplane.vafla.eu` | 1 | Headplane — VPS-local backend |
 | `proxmox.vafla.eu` | 1 | Proxmox web GUI — tailnet only, no Anubis; nginx → Proxmox baremetal tailscale IP:8006 |
 | `torrent.vafla.eu` | 1 | qBittorrent |
+| `prowlarr.vafla.eu` | 1 | Prowlarr |
 | `tursi.vafla.eu` | 1 | 4get |
 
 SSH to Proxmox baremetal and homeserver uses their tailscale IPs directly
@@ -579,6 +582,21 @@ WiFi) when on the tailnet.
   not the VM's own services (SSH, Technitium, etc.).
 - Doesn't eliminate destination visibility, just shifts it from the local network to
   Mullvad instead of the home ISP / VPS provider.
+
+### Future idea — ntfy as a central notification hub
+
+Not implemented, parked for later. Self-hosted `ntfy` on homeserver, phone has the ntfy
+app subscribed to the relevant topics. Planned senders, all confirmed possible:
+
+- **Disk health** (Scrutiny, see `notes/proxmox-baremetal.md`) — native `shoutrrr` ntfy
+  support, for wearout/SMART warnings.
+- **Gatus** — native `ntfy` alerting provider (`alerting.ntfy.url`/`topic`/`token`), for
+  service-down alerts.
+- **Jellyfin** — new-library-item notifications via a dedicated plugin
+  (`Jellyfin.Plugin.NtfyNotifier`) or the more general `jellyfin-plugin-webhook`'s ntfy
+  integration.
+- **Homarr** — Notifications widget reads from ntfy natively, same topic(s) shown on the
+  dashboard as well as pushed to the phone.
 
 ### Gotchas hit provisioning the `homeserver` VM (for next time)
 
