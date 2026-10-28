@@ -12,6 +12,19 @@
       environmentFile = config.age.secrets.nazhivo-gatus-auth.path;
       settings = {
         web.port = 8081;
+        storage = {
+          type = "sqlite";
+          path = "/var/lib/gatus/data.db";
+          maximum-number-of-results = 500;
+        };
+        ui = {
+          title = "zdrave";
+          description = "";
+          header = "zdraven pregled";
+          dashboard-heading = " ";
+          dashboard-subheading = " ";
+          default-sort-by = "group";
+        };
         endpoints = [
 
           # ── minecraft ──────────────────────────────────────────────────────
